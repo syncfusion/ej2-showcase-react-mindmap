@@ -74,6 +74,7 @@ export let getMindMapShape;
 export let setConnectorDefault;
 export let  isToolbarClicked = false;
 export let  levelType = "Level0";
+export let htmlAttributes = { rows: '18' };
 export let nodeShape;
 var templateType = "template1";  
 var fillColorCode = ['#C4F2E8', '#F7E0B3', '#E5FEE4', '#E9D4F1', '#D4EFED', '#DEE2FF'];
@@ -816,7 +817,7 @@ class App extends React.Component {
                                     <div className="row db-prop-row" style={{paddingTop:"10px"}}>
                                         <div className="col-xs-12 db-col-left" style={{height:"65%",marginTop:"5px"}} >
                                             <div style={{height:"95%"}}>
-                                            <TextBoxComponent  id="multipleChildText" floatLabelType="Auto" required={true} multiline={true}/>
+                                            <TextBoxComponent  id="multipleChildText" floatLabelType="Auto" htmlAttributes={htmlAttributes} required={true} multiline={true}/>
                                             </div>
                                         </div>
                                     </div>
