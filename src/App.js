@@ -18,7 +18,7 @@ import { DataManager, Query } from "@syncfusion/ej2-data";
 import { PortVisibility } from '@syncfusion/ej2-diagrams';
 import { NumericTextBoxComponent,TextBoxComponent, ColorPickerComponent,SliderComponent } from "@syncfusion/ej2-react-inputs";
 Diagram.Inject(UndoRedo, DiagramContextMenu, Snapping, DataBinding);
-Diagram.Inject(PrintAndExport, BpmnDiagrams, HierarchicalTree, MindMapTree,MindMap, ConnectorBridging, LayoutAnimation);
+Diagram.Inject(PrintAndExport, BpmnDiagrams, HierarchicalTree,MindMap, ConnectorBridging, LayoutAnimation);
 SymbolPalette.Inject(BpmnDiagrams);
 
     export class PaperSize {
@@ -74,8 +74,9 @@ export let getMindMapShape;
 export let setConnectorDefault;
 export let  isToolbarClicked = false;
 export let  levelType = "Level0";
-export let htmlAttributes = { rows: '18' };
 export let nodeShape;
+export let htmlAttributes = { rows: '15' };
+///htmlAttributes = { rows: '5' };
 var templateType = "template1";  
 var fillColorCode = ['#C4F2E8', '#F7E0B3', '#E5FEE4', '#E9D4F1', '#D4EFED', '#DEE2FF'];
 var borderColorCode = ['#8BC1B7', '#E2C180', '#ACCBAA', '#D1AFDF', '#90C8C2', '#BBBFD6'];
@@ -486,6 +487,7 @@ class App extends React.Component {
                                     //Sets layout type
                                     type: 'MindMap', horizontalSpacing: 50,
                                     verticalSpacing: 50,
+                                    orientation:"Horizontal", 
                                     getBranch: function (node) {
                                         if (node.addInfo) {
                                             var addInfo = node.addInfo;
@@ -785,6 +787,18 @@ class App extends React.Component {
                                     </div>
                                 </div>
                                 <div className="db-prop-separator"></div>
+                                <div className="row db-prop-header-text">
+                                    Orientation
+                                </div>
+                                <div className="row db-prop-row">
+                                    <div className="col-xs-6 db-col-left">
+                                        <RadioButtonComponent  id="horizontal" label="Horizontal" value="Horizontal" name="Horizontal" checked={true} change={this.horizontalChange.bind(this)}/>
+                                    </div>
+                                    <div className="col-xs-4 db-col-right">
+                                        <RadioButtonComponent  id="vertical" label="Vertical" value="Vertical" name="Vertical" checked={false} change={this.verticalChange.bind(this)}/>
+                                    </div>
+                                </div>
+                                <div className="db-prop-separator"></div>
                                 <div className="row db-prop-row">
                                     <div className="col-xs-8 db-col-right db-prop-text-style" style={{paddingTop:"14px"}}>
                                         <span className="db-prop-text-style db-spacing-text">Horizontal Spacing</span>
@@ -817,7 +831,7 @@ class App extends React.Component {
                                     <div className="row db-prop-row" style={{paddingTop:"10px"}}>
                                         <div className="col-xs-12 db-col-left" style={{height:"65%",marginTop:"5px"}} >
                                             <div style={{height:"95%"}}>
-                                            <TextBoxComponent  id="multipleChildText" floatLabelType="Auto" htmlAttributes={htmlAttributes} required={true} multiline={true}/>
+                                            <TextBoxComponent  id="multipleChildText" className="multipleChildText" floatLabelType="Auto" htmlAttributes={htmlAttributes} required={true}  multiline={true}/>
                                             </div>
                                         </div>
                                     </div>
@@ -963,6 +977,28 @@ class App extends React.Component {
         connectorType = "Straight";
         for (var i = 0; i < diagram.connectors.length; i++) {
             diagram.connectors[i].type = "Straight";
+            diagram.dataBind();
+        }
+    }
+    horizontalChange(){
+        var diagram = document.getElementById("diagram").ej2_instances[0];
+        var horizontalButton = document.getElementById("horizontal").ej2_instances[0];
+        var verticalButton = document.getElementById("vertical").ej2_instances[0];
+        verticalButton.checked = false;
+        //horizontalButton.dataBind();
+        if(horizontalButton.checked){
+            diagram.layout.orientation = "Horizontal";
+            diagram.dataBind();
+        }
+    }
+    verticalChange(){
+        var diagram = document.getElementById("diagram").ej2_instances[0];
+        var horizontalButton = document.getElementById("horizontal").ej2_instances[0];
+        var verticalButton = document.getElementById("vertical").ej2_instances[0];
+        horizontalButton.checked = false;
+        // verticalButton.dataBind();
+        if(verticalButton.checked){
+            diagram.layout.orientation = "Vertical";
             diagram.dataBind();
         }
     }
