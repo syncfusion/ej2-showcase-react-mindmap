@@ -18,22 +18,16 @@ import { DataManager, Query } from "@syncfusion/ej2-data";
 import { PortVisibility } from '@syncfusion/ej2-diagrams';
 import { NumericTextBoxComponent,TextBoxComponent, ColorPickerComponent,SliderComponent } from "@syncfusion/ej2-react-inputs";
 Diagram.Inject(UndoRedo, DiagramContextMenu, Snapping, DataBinding);
-Diagram.Inject(PrintAndExport, BpmnDiagrams, HierarchicalTree,MindMap, ConnectorBridging, LayoutAnimation);
-SymbolPalette.Inject(BpmnDiagrams);
+Diagram.Inject(PrintAndExport,MindMap, ConnectorBridging, LayoutAnimation);
 
-    export class PaperSize {
-    }
-
-var hierarchicalData = [
-    { id: '1', Label: 'Creativity',  branch: 'Root', hasChild: true, level: 0, fill: "#D0ECFF", strokeColor: "#80BFEA", orientation: 'Root' },
-];
 export let workingData = [
     { id: '1', Label: 'Creativity',  branch: 'Root', hasChild: true, level: 0, fill: "#D0ECFF", strokeColor: "#80BFEA", orientation: 'Root' },
 ];
+const fields = { dataSource: workingData, id: 'id', text: 'Label',parentID: 'parentId',hasChildren: 'hasChild' };
+var items = new DataManager(workingData, new Query().take(7));
+export class PaperSize {
+}
 
-const fields = { dataSource: hierarchicalData, id: 'id', text: 'Label',parentID: 'parentId',hasChildren: 'hasChild' };
-
-var items = new DataManager(hierarchicalData, new Query().take(7));
 export let connectorType = "Bezier";
 export let index = 1;
 export let isExpanded = false;
@@ -76,7 +70,6 @@ export let  isToolbarClicked = false;
 export let  levelType = "Level0";
 export let nodeShape;
 export let htmlAttributes = { rows: '15' };
-///htmlAttributes = { rows: '5' };
 var templateType = "template1";  
 var fillColorCode = ['#C4F2E8', '#F7E0B3', '#E5FEE4', '#E9D4F1', '#D4EFED', '#DEE2FF'];
 var borderColorCode = ['#8BC1B7', '#E2C180', '#ACCBAA', '#D1AFDF', '#90C8C2', '#BBBFD6'];
@@ -86,6 +79,8 @@ var rightarrow = 'M0,3.063 L7.292,3.063 L7.292,0 L11.924,4.633 L7.292,9.266 L7.2
 var devareicon = 'M 7.04 22.13 L 92.95 22.13 L 92.95 88.8 C 92.95 91.92 91.55 94.58 88.76' +
     '96.74 C 85.97 98.91 82.55 100 78.52 100 L 21.48 100 C 17.45 100 14.03 98.91 11.24 96.74 C 8.45 94.58 7.04' +
    '91.92 7.04 88.8 z M 32.22 0 L 67.78 0 L 75.17 5.47 L 100 5.47 L 100 16.67 L 0 16.67 L 0 5.47 L 24.83 5.47 z';
+
+//To hide userhandle when elements not selected in the diagram
 export function hideUserHandle(name) {
     var diagram = document.getElementById("diagram").ej2_instances[0];
     for (var _i = 0, _a = diagram.selectedItems.userHandles; _i < _a.length; _i++) {
@@ -95,6 +90,7 @@ export function hideUserHandle(name) {
         }
     }
 }
+//To remove the selected toolbar item
 export function removeSelectedToolbarItem ()
 {
     var toolbarObj=document.getElementById("toolbarEditor").ej2_instances[0];
@@ -105,8 +101,9 @@ export function removeSelectedToolbarItem ()
         }
     }
     toolbarObj.dataBind();
-    //document.getElementById('conTypeBtn').classList.remove('tb-item-selected');
+   
 };
+//To get the color values for fil,stroke.
 export function getColor(colorName) {
     if (window.navigator.msSaveBlob && colorName.length === 9) {
         return colorName.substring(0, 7);
@@ -126,6 +123,7 @@ for (var i = 0; i < diagram.selectedItems.userHandles.length; i++) {
     }
 }
 }
+//render the nodes in treeview
 export function addTreeNode() {
     var treeObj = document.getElementById("treeView").ej2_instances[0]
     var targetNodeId = treeObj.selectedNodes[0];
@@ -153,6 +151,7 @@ export function addTreeNode() {
     workingData.push(item);
     treeObj.beginEdit(nodeId);
 }
+//To get the orientation of the node 
 export function getTreeOrientation(tempData) {
     var leftChildCount = 0;
     var rightChildCount = 0;
@@ -181,6 +180,7 @@ export function applyHandle(handle, side, offset, margin, halignment, valignment
     handle.horizontalAlignment = halignment;
     handle.verticalAlignment = valignment;
 }
+//To get the orientation of the node to be added
 export function getOrientation() {
     var diagram = document.getElementById("diagram").ej2_instances[0]
     var leftChildCount = 0;
@@ -204,13 +204,14 @@ export function getOrientation() {
     return orientation;
 
 }
-
+//To show the property panel to add multiple child
 export function addMultipleChild() {
     document.getElementById('mindMapContainer').style.display = 'none';
     document.getElementById('multipleChildPropertyContainer').style.display = '';
     document.getElementById('propertyHeader').innerText = "Add Multiple Child";
 }
 
+//To add sibling child to the child node
 export function addSibilingChild(){
     var diagram = document.getElementById("diagram").ej2_instances[0];
     var selectedNode = diagram.selectedItems.nodes[0];
@@ -265,7 +266,7 @@ if (selectedNode.data.branch !== 'Root') {
     diagram.select([node1]);
     }
 }
-  
+//define the left userhandle 
 class LeftExtendTool extends ToolBase {
     mouseDown(args) {
         super.mouseDown(args);
@@ -280,6 +281,7 @@ class LeftExtendTool extends ToolBase {
         }
     }
 }
+//define the right userhandle 
 class RightExtendTool extends ToolBase {
     //mouseDown event
     mouseDown(args) {
@@ -296,6 +298,7 @@ class RightExtendTool extends ToolBase {
         }
     }
 }
+//define the delete userhandle 
 class DevareClick extends ToolBase {
     //mouseDown event
     mouseDown(args) {
@@ -503,7 +506,6 @@ class App extends React.Component {
                                     dataSource: items,
                                     root: String(1),
                                 }}
-                                // pageSettings={this.pageSettings}
                                     selectionChange={this.diagramEvents.selectionChange.bind(this.diagramEvents)}
                                     keyDown={this.diagramEvents.keyDown.bind(this)}
                                     textEdit={this.diagramEvents.textEdit.bind(this.diagramEvents )}
@@ -593,16 +595,16 @@ class App extends React.Component {
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">Ctrl + I : </span
-                                    ><span className="db-html-font-normal">To make text Italic </span>
+                                    <span className="db-html-font-medium">Ctrl + I : </span>
+                                    <span className="db-html-font-normal">To make text Italic </span>
                                     </li>
                                 </ul>
                             </div>
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">Ctrl + U : </span
-                                    ><span className="db-html-font-normal">Underline the text</span>
+                                    <span className="db-html-font-medium">Ctrl + U : </span>
+                                    <span className="db-html-font-normal">Underline the text</span>
                                     </li>
                                 </ul>
                             </div>
@@ -611,8 +613,7 @@ class App extends React.Component {
                                     <li>
                                     <span className="db-html-font-medium">Space : </span>
                                     <span className="db-html-font-normal"
-                                        >Expand / Collapse the selected node</span
-                                    >
+                                        >Expand / Collapse the selected node</span>
                                     </li>
                                 </ul>
                             </div>
@@ -855,7 +856,7 @@ class App extends React.Component {
         
         </div>);
     }
-    
+    //To rename the title of the diagram
     renameDiagram() {
         document.getElementsByClassName('db-diagram-name-container')[0].classList.add('db-edit-name');
         const element = document.getElementById('diagramEditable');
@@ -863,6 +864,7 @@ class App extends React.Component {
         element.focus();
         element.select();
     }
+
     diagramNameKeyDown(args) {
         if (args.which === 13) {
             document.getElementById('diagramName').innerHTML = document.getElementById('diagramEditable').value;
@@ -878,15 +880,18 @@ class App extends React.Component {
         this.selectedItem.selectedDiagram = this.diagram;
         
     }
+    // To change the mindmap level
     mindMapLevelsChange(args){
         isToolbarClicked = false;
         levelType = args.value;
     }
+    //To change the mindmap shapes
     mindMapShapeChange(args)
     {
         nodeShape = args.value;
         PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'shape', propertyValue: args });
     }
+    //To change the fill color of the nodes
       mindmapFillChange(args){
         var diagram = document.getElementById("diagram").ej2_instances[0];
         if (isToolbarClicked) {
@@ -897,6 +902,7 @@ class App extends React.Component {
         }
         
     }
+     //To change the stroke color of the nodes/connectors
     mindmapStrokeColorChange(args){
         var diagram = document.getElementById("diagram").ej2_instances[0];
         if (isToolbarClicked) {
@@ -906,12 +912,15 @@ class App extends React.Component {
             PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'stroke', propertyValue: args });
         }
     }
+    //To change the stroke style
     mindmapStrokeStyleChange(args){
         PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'strokeStyle', propertyValue: args });
     }
+    //To change the stoke width
     mindmapStrokeWidthChange(args){
         PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'strokeWidth', propertyValue: args });
     }
+    //To change the opacity value
     mindmapOpacitySliderChange(args){
         PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'opacity', propertyValue: args });
     }
@@ -920,6 +929,7 @@ class App extends React.Component {
          document.getElementById('multipleChildPropertyContainer').style.display = 'none';
          document.getElementById('propertyHeader').innerText = "Properties";
     }
+    //To add the child to the node
     addOnClick()
     {
         var textareaObj = document.getElementById("multipleChildText").ej2_instances[0];
@@ -958,6 +968,7 @@ class App extends React.Component {
     return orientation;
 
 }
+//To change the connector to bezier
     bezierChange(){
         var diagram = document.getElementById("diagram").ej2_instances[0];
         var straightRadioButton = document.getElementById("radio2").ej2_instances[0];
@@ -969,6 +980,7 @@ class App extends React.Component {
             diagram.dataBind();
         }
     }
+    //To change the connector to straight
     straightChange(){
         var diagram = document.getElementById("diagram").ej2_instances[0];
         var bezierRadioButton = document.getElementById("radio1").ej2_instances[0];
@@ -980,6 +992,7 @@ class App extends React.Component {
             diagram.dataBind();
         }
     }
+    //To change the mindmap orientation to horizontal
     horizontalChange(){
         var diagram = document.getElementById("diagram").ej2_instances[0];
         var horizontalButton = document.getElementById("horizontal").ej2_instances[0];
@@ -991,6 +1004,7 @@ class App extends React.Component {
             diagram.dataBind();
         }
     }
+    //To change the mindmap orientation to  vertical
     verticalChange(){
         var diagram = document.getElementById("diagram").ej2_instances[0];
         var horizontalButton = document.getElementById("horizontal").ej2_instances[0];
@@ -1002,12 +1016,15 @@ class App extends React.Component {
             diagram.dataBind();
         }
     }
+    //To change fontfamily of the text
     mindmapFontFamilyListChange(args){
         PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'fontFamily', propertyValue: args });
     }
+    //To change font size of the text
     mindmapFontSizeChange(args){
          PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'fontSize', propertyValue: args });
     }
+    //To change font color of the text
     mindmapTextColorChange(args){
         var diagram = document.getElementById("diagram").ej2_instances[0];
         if (isToolbarClicked) {
@@ -1017,22 +1034,26 @@ class App extends React.Component {
             PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'fontColor', propertyValue: args });
         }
     }
+    //To change opacity value of the text
     mindmapTextOpacitySliderChange(args){
         PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'textOpacity', propertyValue: args });
     }
     textStyleClicked(args) {
     PropertyChange.prototype.mindMapPropertyChange({ propertyName: args.item.tooltipText.toLowerCase(), propertyValue: false });
 }
+// Horizontal spacing
     horizontalSpacingBtnChange(args){
         var diagram = document.getElementById("diagram").ej2_instances[0];
          diagram.layout.horizontalSpacing = Number(args.value);
          diagram.dataBind();
     }
+    // vertical spacing
     verticalSpacingBtnChange(args){
          var diagram = document.getElementById("diagram").ej2_instances[0];
          diagram.layout.verticalSpacing = Number(args.value);
          diagram.dataBind();
     }
+
     expandableChange(args){
           var diagram = document.getElementById("diagram").ej2_instances[0];
          isExpanded = args.checked;
@@ -1052,6 +1073,7 @@ class App extends React.Component {
         return (<div className='db-ddl-template-style'><span className={data.className}/></div>);
     }
     ;
+    //To open the file
     uploader(){
         let uploadObj = new Uploader({
         asyncSettings: {
@@ -1077,6 +1099,7 @@ class App extends React.Component {
         let diagrm = document.getElementById('diagram').ej2_instances[0];
         diagrm.loadDiagram(event.target.result);
       }
+      //To add node 
      addNode(orientation, label, canSelect) {
         var selectedNode = this.diagram.selectedItems.nodes[0];
         if (selectedNode.data.branch !== 'Root') {
@@ -1152,6 +1175,7 @@ class App extends React.Component {
         };
         return userhandle;
     }
+    //To select the mindmap levels
      addMindMapLevels(level) {
         var mindmap = document.getElementById('mindMapLevels');
         var dropdownlist = mindmap.ej2_instances[0];
@@ -1186,6 +1210,7 @@ class App extends React.Component {
         }
         return null;
     };
+    //To get mindmap shape
      getMindMapShape(parentNode) {
         var sss = {};
         var node = {};
@@ -1292,7 +1317,7 @@ class App extends React.Component {
         }
         return tool;
     }
-    
+    //To render the context menu items of design menu item
     designContextMenuOpen(args) {
         if (args.element.classList.contains('e-menu-parent')) {
             const popup = document.querySelector('#btnDesignMenu-popup');
@@ -1300,6 +1325,7 @@ class App extends React.Component {
             args.element.style.top = formatUnit(parseInt(args.element.style.top, 10) - parseInt(popup.style.top, 10));
         }
     }
+      //To render the context menu items of edit menu item
     editContextMenuOpen(args) {
         if (args.element.classList.contains('e-menu-parent')) {
             var popup = document.querySelector('#btnEditMenu-popup');
@@ -1307,6 +1333,7 @@ class App extends React.Component {
             args.element.style.top = formatUnit(parseInt(args.element.style.top, 10) - parseInt(popup.style.top, 10));
         }
     }
+    //To render export dialog
     footerTemplate() {
         return (<div id="exportDialogContent">
                 <div className="row">
@@ -1338,6 +1365,7 @@ class App extends React.Component {
                 </div>
             </div>);
     }
+       //To render print dialog
     printTemplate() {
         return (<div id="printDialogContent">
                 <div className="row">
@@ -1391,6 +1419,7 @@ class App extends React.Component {
                 </div>
             </div>);
     }
+    //To get th dialog buttons
     getDialogButtons(dialogType) {
         const buttons = [];
         // eslint-disable-next-line
@@ -1405,31 +1434,6 @@ class App extends React.Component {
                     click: this.btnPrintClick.bind(this), buttonModel: { content: 'Print', cssClass: 'e-flat e-db-primary', isPrimary: true }
                 });
                 break;
-            // case 'save':Fbulb
-            //     buttons.push({
-            //         click: this.btnSave.bind(this), buttonModel: { content: 'Save', cssClass: 'e-flat e-db-primary', isPrimary: true }
-            //     });
-            //     break;
-            // case 'tooltip':
-            //     buttons.push({
-            //         click: this.btnTooltip.bind(this), buttonModel: { content: 'Apply', cssClass: 'e-flat e-db-primary', isPrimary: true }
-            //     });
-            //     break;
-            // case 'hyperlink':
-            //     buttons.push({
-            //         click: this.btnHyperLink.bind(this), buttonModel: { content: 'Apply', cssClass: 'e-flat e-db-primary', isPrimary: true }
-            //     });
-            //     break;
-            // case 'deleteconfirmation':
-            //     buttons.push({
-            //         click: this.btnDeleteConfirmation.bind(this), buttonModel: { content: 'Ok', cssClass: 'e-flat e-db-primary', isPrimary: true }
-            //     });
-            //     break;
-            // case 'moreshapes':
-            //     buttons.push({
-            //         click: this.btnMoreShapes.bind(this), buttonModel: { content: 'Apply', cssClass: 'e-flat e-db-primary', isPrimary: true }
-            //     });
-            //     break;
         }
         buttons.push({
             click: this.btnCancelClick.bind(this), buttonModel: { content: 'Cancel', cssClass: 'e-flat', isPrimary: true }
@@ -1491,20 +1495,6 @@ class App extends React.Component {
             case 'printDialog':
                 this.printDialog.hide();
                 break;
-            // case 'saveDialog':
-            //     this.saveDialog.hide();
-            //     break;
-            // case 'customPropertyDialog':
-            //     this.customPropertyDialog.hide();
-            //     break;
-            // case 'tooltipDialog':
-            //     this.tooltipDialog.hide();
-            //     break;
-            // case 'hyperlinkDialog':
-            //     this.hyperlinkDialog.hide();
-            //     break;
-            
-            
         }
     }
     toolbarEditorClick(args) 
@@ -1547,18 +1537,20 @@ class App extends React.Component {
             }
             diagram.dataBind();
         };
-
+//Zoom change button in toolbar
     zoomTemplate() {
         return (<div id="template_toolbar">
             <DropDownButtonComponent id="btnZoomIncrement" items={this.dropDownDataSources.zoomMenuItems} content={this.selectedItem.scrollSettings.currentZoom} select={zoomchange}/>
         </div>);
     }
+    //diagram view radio button in toolbar
     diagramView(){
          return (<div id="template_toolbar" style={{marginLeft:"2px"}}>
          <RadioButtonComponent id="diagramView"value="Diagram View" label="Diagram View" checked={true} change={diagramViewChange}></RadioButtonComponent>
      </div>);
         
     }
+    //textview radio button in toolbar
     textview(){
         return (<div id="template_toolbar" style={{marginLeft:"2px"}}>
         <RadioButtonComponent id="textview"value="Text View" label="Text View" change={textViewChange}></RadioButtonComponent>
@@ -1579,9 +1571,7 @@ class App extends React.Component {
             }, 0);
         }
     }
-   
-
-
+   // To enable the toolbar items
     enableMenuItems(itemText, selectedItem) {
         if (selectedItem && selectedItem.selectedDiagram) {
             let selectedItems = selectedItem.selectedDiagram.selectedItems.nodes;
@@ -1634,6 +1624,7 @@ class App extends React.Component {
         }
         return false;
     }
+    //Method to change the values of zoom dropdown in toolbar
     zoomChange(args) {
         var zoomCurrentValue = document.getElementById("btnZoomIncrement").ej2_instances[0];
         var diagram = this.selectedItem.selectedDiagram;
@@ -1670,6 +1661,7 @@ class App extends React.Component {
         zoomCurrentValue.content = Math.round(diagram.scrollSettings.currentZoom*100) + ' %';
         
     }
+      //Method to change diagramview in toolbar
     diagramViewChange(){
         var diagram = document.getElementById("diagram").ej2_instances[0];
         var textRadioButton = document.getElementById("textview").ej2_instances[0];
@@ -1683,6 +1675,7 @@ class App extends React.Component {
          btnWindowMenu.items[2].iconCss = document.getElementById('shortcutDiv').style.visibility === "hidden" ? '' : 'sf-icon-check-tick';
          diagram.fitToPage();
     }
+    //Method to change treeview in toolbar
     textViewChange(){ 
         var diagram = document.getElementById("diagram").ej2_instances[0];
         var diagramRadioButton = document.getElementById("diagramView").ej2_instances[0];
@@ -1713,6 +1706,7 @@ class App extends React.Component {
             treeObj.beginEdit(targetNodeId);
         }
    }
+   //To get shortcut keys for the menu items
     getShortCutKey(menuItem) {
         let shortCutKey = navigator.platform.indexOf('Mac') > -1 ? 'Cmd' : 'Ctrl';
         // eslint-disable-next-line
@@ -1787,7 +1781,7 @@ class App extends React.Component {
             zoomCurrentValue.content = Math.round(diagram.scrollSettings.currentZoom * 100) + ' %';
         }
      }
-    
+     //To set the nodes default values
      getNodeDefaults(obj){
         if (obj.id !== 'textNode' && obj.data) {
             //obj.constraints = draggableCheckbox.checked ?NodeConstraints.Default |NodeConstraints.AllowDrop :NodeConstraints.Default & ~NodeConstraints.Drag;
@@ -1834,6 +1828,7 @@ class App extends React.Component {
 
         return obj;
      }
+      //To set the port values
      getPort() {
         var port =
             [{
@@ -1847,6 +1842,7 @@ class App extends React.Component {
             ];
         return port;
     }
+    //To set the connector default values
     getConnectorDefaults(connector) {
         var diagram = document.getElementById("diagram").ej2_instances[0];
         connector.type = connectorType;
@@ -1866,7 +1862,7 @@ class App extends React.Component {
         connector.constraints &= ~ConnectorConstraints.Select;
         return connector;
     };
-   
+   //selection change event
     selectionChange(arg){
           if (arg.state === 'Changing') {
             var diagram = document.getElementById("diagram").ej2_instances[0];
@@ -1936,6 +1932,7 @@ class App extends React.Component {
             menuObj.enableItems(['Rename Item'], true);
         }
 }
+//event triggered on menu items click
     menuClick(args) {
         const buttonElement = document.getElementsByClassName('e-btn-hover')[0];
         if (buttonElement) {
@@ -2083,6 +2080,7 @@ class App extends React.Component {
         }
         diagram.dataBind();
     }
+    //To hide the toolbar container
     hideToolbar(){
         var diagram = document.getElementById("diagram").ej2_instances[0];
         var btnWindowMenu = document.getElementById("btnWindowMenu").ej2_instances[0];
@@ -2090,6 +2088,7 @@ class App extends React.Component {
         UtilityMethods.prototype.hideElements('hide-properties', diagram);
         btnWindowMenu.items[1].iconCss = btnWindowMenu.items[1].iconCss ? '' : 'sf-icon-check-tick';
     }
+    //To change the paper size
     paperListChange(args,diagram)
     {
         var value = args.item.value;
@@ -2134,7 +2133,7 @@ class App extends React.Component {
          }
         }
     };
-  
+  //To check and uncheck the menu items
     updateSelection(item)
     {
         for(var i=0;i<item.parentObj.items.length;i++)
@@ -2195,6 +2194,7 @@ class App extends React.Component {
         }
         return paperSize
     };
+    //To save the diagram
     download(data)
     {
         if (window.navigator.msSaveBlob) {
@@ -2212,40 +2212,9 @@ class App extends React.Component {
         }
     };
     menumouseover(args) {
-        // var target = args.target;
-        // var diagram=this.selectedItem.selectedDiagram;
-        // if (target && (target.className === 'e-control e-dropdown-btn e-lib e-btn db-dropdown-menu' ||
-        //     target.className === 'e-control e-dropdown-btn e-lib e-btn db-dropdown-menu e-ddb-active')) {
-        //     if (this.buttonInstance && this.buttonInstance.id !== target.id) {
-        //         if (this.buttonInstance.getPopUpElement().classList.contains('e-popup-open')) {
-        //             this.buttonInstance.toggle();
-        //             const buttonElement = document.getElementById(this.buttonInstance.element.id);
-        //             buttonElement.classList.remove('e-btn-hover');
-        //         }
-        //     }
-        //     var button1 = target.ej2_instances[0];
-        //     this.buttonInstance = button1;
-        //     if (button1.getPopUpElement().classList.contains('e-popup-close')) {
-        //         button1.toggle();
-        //         if (button1.element.id === 'btnEditMenu') {
-        //             this.enableEditMenuItems(diagram);
-        //         }
-        //         const buttonElement = document.getElementById(this.buttonInstance.element.id);
-        //         buttonElement.classList.add('e-btn-hover');
-        //     }
-        // }
-        // else {
-        //     if (closest(target, '.e-dropdown-popup') === null && closest(target, '.e-dropdown-btn') === null) {
-        //         if (this.buttonInstance && this.buttonInstance.getPopUpElement().classList.contains('e-popup-open')) {
-        //             this.buttonInstance.toggle();
-        //             const buttonElement = document.getElementById(this.buttonInstance.element.id);
-        //             buttonElement.classList.remove('e-btn-hover');
-        //         }
-        //     }
-        // }
         var target = args.target;
         var diagram=this.selectedItem.selectedDiagram
-    if (target && (target.className === 'e-control e-dropdown-btn e-lib e-btn db-dropdown-menu' ||
+        if (target && (target.className === 'e-control e-dropdown-btn e-lib e-btn db-dropdown-menu' ||
         target.className === 'e-control e-dropdown-btn e-lib e-btn db-dropdown-menu e-ddb-active')) {
         if (this.buttonInstance && this.buttonInstance.id !== target.id) {
             if (this.buttonInstance.getPopUpElement().classList.contains('e-popup-open')) {
