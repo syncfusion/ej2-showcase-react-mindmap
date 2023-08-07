@@ -15,9 +15,7 @@ export class NodeProperties {
         this.mStrokeWidth = 1;
         this.mOpacity = 0;
         this.mAspectRatio = false;
-        this.mGradient = false;
-        this.mGradientDirection = 'BottomToTop';
-        this.mGradientColor = '#ffffff';
+       
     }
     get offsetX() {
         return this.mOffsetX;
@@ -118,77 +116,14 @@ export class NodeProperties {
             this.triggerPropertyChange('aspectRatio', aspectRatio);
         }
     }
-    get gradient() {
-        return this.mGradient;
-    }
-    set gradient(gradient) {
-        if (this.mGradient !== gradient) {
-            this.mGradient = gradient;
-            const gradientElement = document.getElementById('gradientStyle');
-            if (gradient) {
-                gradientElement.className = 'row db-prop-row db-gradient-style-show';
-            }
-            else {
-                gradientElement.className = 'row db-prop-row db-gradient-style-hide';
-            }
-            this.triggerPropertyChange('gradient', gradient);
-        }
-    }
-    get gradientDirection() {
-        return this.mGradientDirection;
-    }
-    set gradientDirection(gradientDirection) {
-        if (this.mGradientDirection !== gradientDirection) {
-            this.mGradientDirection = gradientDirection;
-            this.triggerPropertyChange('gradient', true);
-        }
-    }
-    get gradientColor() {
-        return this.mGradientColor;
-    }
-    set gradientColor(gradientColor) {
-        if (this.mGradientColor !== gradientColor) {
-            this.mGradientColor = gradientColor;
-            this.triggerPropertyChange('gradient', true);
-        }
-    }
+   
+    
     triggerPropertyChange(propName, propValue) {
         if (!isNullOrUndefined(this.propertyChange)) {
             this.propertyChange.call(this, { propertyName: propName, propertyValue: propValue });
         }
     }
-    getGradient(node) {
-        const gradientValue = this.getGradientDirectionValue(this.gradientDirection.value);
-        node.style.gradient = {
-            type: 'Linear',
-            x1: gradientValue.x1, x2: gradientValue.x2, y1: gradientValue.y1, y2: gradientValue.y2,
-            stops: [
-                { color: node.style.fill, offset: 0 },
-                { color: this.getColor(this.gradientColor.value), offset: 1 }
-            ]
-        };
-    }
-    getGradientDirectionValue(direction) {
-        let gradientValue = {};
-        let x1 = 0;
-        let x2 = 0;
-        let y1 = 0;
-        let y2 = 0;
-        if (direction === 'LeftToRight') {
-            x1 = 100;
-        }
-        else if (direction === 'BottomToTop') {
-            y2 = 100;
-        }
-        else if (direction === 'RightToLeft') {
-            x2 = 100;
-        }
-        else {
-            y1 = 100;
-        }
-        gradientValue = { 'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2 };
-        return gradientValue;
-    }
+   
     getColor(colorName) {
         if (window.navigator && colorName.length === 9) {
             return colorName.substring(0, 7);
@@ -725,9 +660,7 @@ export class SelectorViewModel {
         switch (propertyName) {
             case 'fillcolor':
                 node.style.fill = this.getColor(value);
-                if (this.nodeProperties.gradient) {
-                    this.nodeProperties.getGradient(node);
-                }
+                
                 break;
             case 'strokecolor':
                 node.style.strokeColor = this.getColor(this.nodeProperties.strokeColor.value);
@@ -742,18 +675,7 @@ export class SelectorViewModel {
                 node.style.opacity = this.nodeProperties.opacity.value / 100;
                 document.getElementById('nodeOpacitySliderText').value = (this.nodeProperties.opacity.value) + '%';
                 break;
-            case 'gradient':
-                if (value && !value.checked) {
-                    node.style.gradient.type = 'None';
-                }
-                else {
-                    this.nodeProperties.getGradient(node);
-                }
-                break;
-            case 'gradientdirection':
-            case 'gradientcolor':
-                this.nodeProperties.getGradient(node);
-                break;
+         
         }
     }
 }

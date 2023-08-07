@@ -70,7 +70,7 @@ export let  isToolbarClicked = false;
 export let  levelType = "Level0";
 export let nodeShape;
 export let htmlAttributes = { rows: '15' };
-var templateType = "template1";  
+export let templateType = "template1";  
 var fillColorCode = ['#C4F2E8', '#F7E0B3', '#E5FEE4', '#E9D4F1', '#D4EFED', '#DEE2FF'];
 var borderColorCode = ['#8BC1B7', '#E2C180', '#ACCBAA', '#D1AFDF', '#90C8C2', '#BBBFD6'];
 var lastFillIndex = 0;
@@ -1771,10 +1771,6 @@ class App extends React.Component {
     }
     scrollChange(args){
         var diagram=this.selectedItem.selectedDiagram;
-        // if(args.panState !=='Start'){ 
-        //     var btnZoomIncrement = document.getElementById("btnZoomIncrement").ej2_instances[0];
-        // btnZoomIncrement.content = Math.round(diagram.scrollSettings.currentZoom * 100) + ' %';
-        // }
         var zoomCurrentValue = document.getElementById("btnZoomIncrement");
         if (zoomCurrentValue && zoomCurrentValue.ej2_instances) {
             zoomCurrentValue = document.getElementById("btnZoomIncrement").ej2_instances[0];

@@ -26,30 +26,6 @@ import { getConnector,getNode } from '../App';
          selectedItem.nodeProperties.opacity.value = node.style.opacity * 100;
          selectedItem.nodeProperties.opacityText = selectedItem.nodeProperties.opacity.value + '%';
          selectedItem.nodeProperties.aspectRatio.checked = node.constraints & NodeConstraints.AspectRatio ? true : false;
-         selectedItem.nodeProperties.gradient = node.style.gradient.type !== 'None' ? true : false;
-         const gradientElement = document.getElementById('gradientStyle');
-         if (selectedItem.nodeProperties.gradient) {
-             gradientElement.className = 'row db-prop-row db-gradient-style-show';
-             selectedItem.nodeProperties.gradientColor.value = node.style.gradient.stops[1].color;
-             const gradient = node.style.gradient;
-             if (gradient.x1) {
-                 selectedItem.nodeProperties.gradientDirection.value = 'North';
-             }
-             else if (gradient.x2) {
-                 selectedItem.nodeProperties.gradientDirection.value = 'East';
-             }
-             else if (gradient.y1) {
-                 selectedItem.nodeProperties.gradientDirection.value = 'West';
-             }
-             else if (gradient.y2) {
-                 selectedItem.nodeProperties.gradientDirection.value = 'South';
-             }
-         }
-         else {
-             gradientElement.className = 'row db-prop-row db-gradient-style-hide';
-             selectedItem.nodeProperties.gradientColor.value = '#ffffff';
-             selectedItem.nodeProperties.gradientDirection.value = 'South';
-         }
          selectedItem.preventPropertyChange = false;
      }
      

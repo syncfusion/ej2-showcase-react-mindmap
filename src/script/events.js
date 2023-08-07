@@ -1,19 +1,16 @@
 import { Node, Diagram,Connector, ShapeAnnotation,Keys, PathAnnotation,KeyModifiers,SelectorConstraints,DiagramAction } from '@syncfusion/ej2-diagrams';
 import {hideUserHandle,changeUserHandlePosition,addNode,addSibilingChild,removeSelectedToolbarItem}   from "../App"
 import { UtilityMethods } from './utilitymethods';
-// var workingData = [
-//     { id: '1', Label: 'Creativity', fill: 'red', branch: 'Root', hasChild: true, level: 0, fill: "#D0ECFF", strokeColor: "#80BFEA", orientation: 'Root' },
-// ];
 import { workingData } from '../App';
-var childHeight = 20;
-
 var templateType = "template1";
 var connectorType = "Bezier";
+var childHeight = 20;
 export class DiagramClientSideEvents {
     constructor(selectedItem, page) {
         this.selectedItem = selectedItem;
         this.page = page;
     }
+    //selection change event
     selectionChange(arg) {
         const diagram = this.selectedItem.selectedDiagram;
         var textareaObj = document.getElementById("multipleChildText").ej2_instances[0];
@@ -55,6 +52,7 @@ export class DiagramClientSideEvents {
         }
 
     }
+    //enable and disable of toolbar items
     onClickDisable = function (args, node) {
         var toolbarObj=document.getElementById("toolbarEditor").ej2_instances[0];
         if (args === false) {
@@ -73,10 +71,11 @@ export class DiagramClientSideEvents {
         }
         removeSelectedToolbarItem();
     };
+    //created event
    created(args) {
     const diagram = this.selectedItem.selectedDiagram;
         diagram.fitToPage();
-
+        //define the command manager
         diagram.commandManager = {
             commands: [
                 {
@@ -369,12 +368,14 @@ export class DiagramClientSideEvents {
         };
         diagram.dataBind();
     };
+    //keydown event
     keyDown(args){
         var diagram=document.getElementById("diagram").ej2_instances[0];
         if (args.key === "Enter" && args.keyModifiers === 0 && (diagram.diagramActions & DiagramAction.TextEdit)) {
         diagram.endEdit();
         }
     }
+    //textedit event
     textEdit(args){
         setTimeout(() => {
             if (args.annotation) {
@@ -383,6 +384,7 @@ export class DiagramClientSideEvents {
             }
         }, 0);
     }
+    //drop event
     drop(args,diagram){
         if (args.target && args.target.inEdges) {
             var connector = diagram.getObject(
@@ -415,7 +417,7 @@ export class DiagramClientSideEvents {
             }
         } 
     }
-   
+   //To update the datasource
     updateDataSource(source, target){
         var diagram=document.getElementById("diagram").ej2_instances[0];
         var updateData = workingData.find(function (element) {
@@ -463,6 +465,7 @@ export class DiagramClientSideEvents {
             }
         }
     }
+    //enable toolbar items
     enableToolbarItems(selectedItems) {
         const toolbarContainer = document.getElementsByClassName('db-toolbar-container')[0];
         let toolbarClassName = 'db-toolbar-container';
@@ -505,43 +508,14 @@ export class DiagramClientSideEvents {
             }
         }
     }
-    
-    nodePositionChange(args) {
-        this.selectedItem.preventPropertyChange = true;
-        this.selectedItem.nodeProperties.offsetX.value = (Math.round(args.newValue.offsetX * 100) / 100);
-        this.selectedItem.nodeProperties.offsetY.value = (Math.round(args.newValue.offsetY * 100) / 100);
-        if (args.state === 'Completed') {
-            this.selectedItem.isModified = true;
-            this.selectedItem.preventPropertyChange = false;
-        }
-    }
-    nodeSizeChange(args) {
-        this.selectedItem.preventPropertyChange = true;
-        this.selectedItem.nodeProperties.width.value = (Math.round(args.newValue.width * 100) / 100);
-        this.selectedItem.nodeProperties.height.value = (Math.round(args.newValue.height * 100) / 100);
-        if (args.state === 'Completed') {
-            this.selectedItem.isModified = true;
-            this.selectedItem.preventPropertyChange = false;
-        }
-    }
-    scrollChange(args) {
-        this.selectedItem.scrollSettings.currentZoom = (args.newValue.CurrentZoom * 100).toFixed() + '%';
-    }
-    nodeRotationChange(args) {
-        this.selectedItem.preventPropertyChange = true;
-        this.selectedItem.nodeProperties.rotateAngle.value = (Math.round(args.newValue.rotateAngle * 100) / 100);
-        this.selectedItem.preventPropertyChange = false;
-        if (args.state === 'Completed') {
-            this.selectedItem.isModified = true;
-        }
-    }
-    
+    //dragenter event
     dragEnter(args) {
         const obj = args.element;
         const ratio = 100 / obj.width;
         obj.width = 100;
         obj.height *= ratio;
     }
+    //history change event
     historyChange(args) {
         var diagram = document.getElementById("diagram").ej2_instances[0];
         var toolbarContainer = document.getElementsByClassName('db-toolbar-container')[0];
@@ -553,106 +527,9 @@ export class DiagramClientSideEvents {
         if (diagram.historyManager.redoStack.length > 0) {
             toolbarContainer.classList.add('db-redo');
         }
-        // diagram.historyManager.undoStack.length > 0 ? toolbarObj.items[0].disabled = false : toolbarObj.items[0].disabled = true
-        // diagram.historyManager.redoStack.length > 0 ? toolbarObj.items[1].disabled = false : toolbarObj.items[1].disabled = true
+       
     }
-    multipleSelectionSettings(selectedItems) {
-        this.selectedItem.utilityMethods.objectTypeChange('None');
-        let showConnectorPanel = false;
-        let showNodePanel = false;
-        let showTextPanel = false;
-        let showConTextPanel = false;
-        const nodeContainer = document.getElementById('nodePropertyContainer');
-        for (const item of selectedItems) {
-            const object = item;
-            if (object instanceof Node && (!showNodePanel || !showTextPanel)) {
-                showNodePanel = true;
-                showTextPanel = object.annotations.length > 0 && object.annotations[0].content ? true : false;
-            }
-            else if (object instanceof Connector && (!showConnectorPanel || !showConTextPanel)) {
-                showConnectorPanel = true;
-                showConTextPanel = object.annotations.length > 0 && object.annotations[0].content ? true : false;
-            }
-        }
-        const selectItem1 = this.selectedItem.selectedDiagram.selectedItems;
-        if (showNodePanel) {
-            nodeContainer.style.display = '';
-            nodeContainer.classList.add('multiple');
-            if (showConnectorPanel) {
-                nodeContainer.classList.add('connector');
-            }
-            this.selectedItem.utilityMethods.bindNodeProperties(selectItem1.nodes[0], this.selectedItem);
-        }
-        if (showConnectorPanel && !showNodePanel) {
-            document.getElementById('connectorPropertyContainer').style.display = '';
-            this.selectedItem.utilityMethods.bindConnectorProperties(selectItem1.connectors[0], this.selectedItem);
-        }
-        if (showTextPanel || showConTextPanel) {
-            document.getElementById('textPropertyContainer').style.display = '';
-            if (showTextPanel && showConTextPanel) {
-                document.getElementById('textPositionDiv').style.display = 'none';
-                document.getElementById('textColorDiv').className = 'col-xs-6 db-col-left';
-            }
-            else {
-                document.getElementById('textPositionDiv').style.display = '';
-                document.getElementById('textColorDiv').className = 'col-xs-6 db-col-right';
-                if (showConTextPanel) {
-                    this.ddlTextPosition.dataSource = this.selectedItem.textProperties.getConnectorTextPositions();
-                    // this.selectedItem.utilityMethods.bindTextProperties(selectItem1.connectors[0].annotations[0].style, this.selectedItem);
-                }
-                else {
-                    this.ddlTextPosition.dataSource = this.selectedItem.textProperties.getNodeTextPositions();
-                    // this.selectedItem.utilityMethods.bindTextProperties(selectItem1.connectors[0].annotations[0].style, this.selectedItem);
-                }
-                this.ddlTextPosition.dataBind();
-            }
-        }
-    }
-    singleSelectionSettings(selectedObject) {
-        let object = null;
-        if (selectedObject instanceof Node) {
-            this.selectedItem.utilityMethods.objectTypeChange('node');
-            object = selectedObject;
-            this.selectedItem.utilityMethods.bindNodeProperties(object, this.selectedItem);
-        }
-        else if (selectedObject instanceof Connector) {
-            this.selectedItem.utilityMethods.objectTypeChange('connector');
-            object = selectedObject;
-            this.selectedItem.utilityMethods.bindConnectorProperties(object, this.selectedItem);
-        }
-        if (object.shape && object.shape.type === 'Text') {
-            document.getElementById('textPropertyContainer').style.display = '';
-            document.getElementById('toolbarTextAlignmentDiv').style.display = 'none';
-            document.getElementById('textPositionDiv').style.display = 'none';
-            document.getElementById('textColorDiv').className = 'col-xs-6 db-col-left';
-            this.selectedItem.utilityMethods.bindTextProperties(object.style, this.selectedItem);
-        }
-        else if (object.annotations.length > 0 && object.annotations[0].content) {
-            document.getElementById('textPropertyContainer').style.display = '';
-            let annotation;
-            document.getElementById('toolbarTextAlignmentDiv').style.display = '';
-            document.getElementById('textPositionDiv').style.display = '';
-            document.getElementById('textColorDiv').className = 'col-xs-6 db-col-right';
-            this.selectedItem.utilityMethods.bindTextProperties(object.annotations[0].style, this.selectedItem);
-            this.selectedItem.utilityMethods.updateHorVertAlign(object.annotations[0].horizontalAlignment, object.annotations[0].verticalAlignment);
-            if (object.annotations[0] instanceof ShapeAnnotation) {
-                annotation = object.annotations[0];
-                this.ddlTextPosition.dataSource = this.selectedItem.textProperties.getNodeTextPositions();
-                this.ddlTextPosition.value = this.selectedItem.textProperties.textPosition;
-                this.ddlTextPosition.dataBind();
-                this.ddlTextPosition.value = this.selectedItem.textProperties.textPosition = this.selectedItem.utilityMethods.getPosition(annotation.offset);
-                this.ddlTextPosition.dataBind();
-            }
-            else if (object.annotations[0] instanceof PathAnnotation) {
-                annotation = object.annotations[0];
-                this.ddlTextPosition.dataSource = this.selectedItem.textProperties.getConnectorTextPositions();
-                this.ddlTextPosition.value = this.selectedItem.textProperties.textPosition;
-                this.ddlTextPosition.dataBind();
-                this.ddlTextPosition.value = this.selectedItem.textProperties.textPosition = annotation.alignment;
-                this.ddlTextPosition.dataBind();
-            }
-        }
-    }
+    //To change the pattern of mindmap
     mindmapPatternChange(args) {
         var target = args.target;
         var diagram= document.getElementById('diagram').ej2_instances[0];
@@ -761,48 +638,7 @@ export class DiagramPropertyBinding {
         this.selectedItem = selectedItem;
         this.page = page;
     }
-    pageBreaksChange(args) {
-        if (args.event) {
-            this.selectedItem.pageSettings.pageBreaks = args.checked;
-            this.selectedItem.selectedDiagram.pageSettings.showPageBreaks = args.checked;
-        }
-    }
-    paperListChange(args) {
-        if (args.element) {
-            const diagram = this.selectedItem.selectedDiagram;
-            document.getElementById('pageDimension').style.display = 'none';
-            document.getElementById('pageOrientation').style.display = '';
-            this.selectedItem.pageSettings.paperSize = args.value;
-            const paperSize = this.selectedItem.utilityMethods.getPaperSize(this.selectedItem.pageSettings.paperSize);
-            let pageWidth = paperSize.pageWidth;
-            let pageHeight = paperSize.pageHeight;
-            if (pageWidth && pageHeight) {
-                if (this.selectedItem.pageSettings.isPortrait) {
-                    if (pageWidth > pageHeight) {
-                        const temp = pageWidth;
-                        pageWidth = pageHeight;
-                        pageHeight = temp;
-                    }
-                }
-                else {
-                    if (pageHeight > pageWidth) {
-                        const temp = pageHeight;
-                        pageHeight = pageWidth;
-                        pageWidth = temp;
-                    }
-                }
-                diagram.pageSettings.width = pageWidth;
-                diagram.pageSettings.height = pageHeight;
-                this.selectedItem.pageSettings.pageWidth = pageWidth;
-                this.selectedItem.pageSettings.pageHeight = pageHeight;
-                diagram.dataBind();
-            }
-            else {
-                document.getElementById('pageOrientation').style.display = 'none';
-                document.getElementById('pageDimension').style.display = '';
-            }
-        }
-    }
+  
     pageDimensionChange(args) {
         if (args.event) {
             let pageWidth = Number(this.selectedItem.pageSettings.pageWidth);
@@ -835,40 +671,7 @@ export class DiagramPropertyBinding {
             }
         }
     }
-    pageOrientationChange(args) {
-        if (args.event) {
-            // const pageWidth: number = Number(this.selectedItem.pageSettings.pageWidth);
-            //  const pageHeight: number = Number(this.selectedItem.pageSettings.pageHeight);
-            const target = args.event.target;
-            const diagram = this.selectedItem.selectedDiagram;
-            // eslint-disable-next-line
-            switch (target.id) {
-                case 'pagePortrait':
-                    this.selectedItem.pageSettings.isPortrait = true;
-                    this.selectedItem.pageSettings.isLandscape = false;
-                    diagram.pageSettings.orientation = 'Portrait';
-                    break;
-                case 'pageLandscape':
-                    this.selectedItem.pageSettings.isPortrait = false;
-                    this.selectedItem.pageSettings.isLandscape = true;
-                    diagram.pageSettings.orientation = 'Landscape';
-                    break;
-            }
-            diagram.dataBind();
-            this.selectedItem.pageSettings.pageWidth = diagram.pageSettings.width;
-            this.selectedItem.pageSettings.pageHeight = diagram.pageSettings.height;
-        }
-    }
-    pageBackgroundChange1(args) {
-        if (args.currentValue) {
-            // const target: HTMLInputElement = args.target as HTMLInputElement; 
-            const diagram = this.selectedItem.selectedDiagram;
-            diagram.pageSettings.background = {
-                color: args.currentValue.rgba
-            };
-            diagram.dataBind();
-        }
-    }
+  
     textPositionChange(args) {
         if (args.value !== null) {
             this.textPropertyChange('textPosition', args.value);
@@ -885,6 +688,7 @@ export class DiagramPropertyBinding {
         const propertyName = args.item.tooltipText.replace('Align ', '');
         this.textPropertyChange(propertyName, propertyName);
     }
+    //Method to change the properties of text
     textPropertyChange(propertyName, propertyValue) {
         if (!this.selectedItem.preventPropertyChange) {
             const diagram = this.selectedItem.selectedDiagram;
@@ -939,6 +743,7 @@ export class DiagramPropertyBinding {
             }
         }
     }
+    //To update the text properties
     updateTextProperties(propertyName, propertyValue, annotation) {
         // eslint-disable-next-line
         switch (propertyName) {
@@ -963,6 +768,7 @@ export class DiagramPropertyBinding {
                 break;
         }
     }
+    //to update the  toolbar selection
     updateToolbarState(toolbarName, isSelected, index) {
         let toolbarTextStyle = document.getElementById(toolbarName);
         if (toolbarTextStyle) {
