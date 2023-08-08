@@ -485,6 +485,9 @@ import { getConnector,getNode } from '../App';
          const btnView = document.getElementById('btnViewMenu');
          btnView.ej2_instances[0].items[7].iconCss = '';
      }
+     fileName(){
+        return document.getElementById('diagramName').innerHTML;
+    }
      getMinDistanceNode(diagram, direction) {
         var node = diagram.selectedItems.nodes[0];
         var parentBounds = node.wrapper.bounds;

@@ -55,7 +55,7 @@ export let createNode;
 export let createConnector;
 export let nodeY;
 export let changeStateChange;
-export let  footTemplate;
+export let footTemplate;
 export let printTemplateChange;
 export let setBinaryStateFromInput;
 export let RunSimulation;
@@ -69,7 +69,7 @@ export let setConnectorDefault;
 export let  isToolbarClicked = false;
 export let  levelType = "Level0";
 export let nodeShape;
-export let htmlAttributes = { rows: '15' };
+export let htmlAttributes = { rows: '20' };
 export let templateType = "template1";  
 var fillColorCode = ['#C4F2E8', '#F7E0B3', '#E5FEE4', '#E9D4F1', '#D4EFED', '#DEE2FF'];
 var borderColorCode = ['#8BC1B7', '#E2C180', '#ACCBAA', '#D1AFDF', '#90C8C2', '#BBBFD6'];
@@ -447,10 +447,10 @@ class App extends React.Component {
                         <ToolbarComponent ref={toolbar => (this.toolbarEditor) = toolbar} id='toolbarEditor' overflowMode='Scrollable' clicked={tooledit}>
                             <ItemsDirective>
                                 <ItemDirective prefixIcon= 'sf-icon-undo tb-icons' tooltipText= 'Undo' />
-                                <ItemDirective prefixIcon="sf-icon-redo tb-icons" tooltipText="Redo"/>
+                                <ItemDirective prefixIcon="sf-icon-redo tb-icons" tooltipText="Redo" />
                                 <ItemDirective type="Separator"/>
-                                <ItemDirective prefixIcon= 'sf-icon-pan' tooltipText= 'Pan Tool' cssClass='tb-item-start'/>
                                 <ItemDirective prefixIcon= 'sf-icon-pointer' tooltipText= 'Select Tool' cssClass='tb-item-middle tb-item-selected'/>
+                                <ItemDirective prefixIcon= 'sf-icon-pan' tooltipText= 'Pan Tool' cssClass='tb-item-middle'/>
                                 <ItemDirective type="Separator"/>
                                 <ItemDirective prefixIcon= 'sf-icon-add-child' tooltipText= 'Add Child' disabled="true"/>
                                 <ItemDirective prefixIcon= 'sf-icon-add-sibling' tooltipText= 'Add Sibling' disabled="true" />
@@ -1341,7 +1341,7 @@ class App extends React.Component {
                         File Name
                 </div>
                     <div className="row db-dialog-child-prop-row">
-                        <input type="text" id="exportfileName" value={this.selectedItem.exportSettings.fileName}/>
+                        <input type="text" id="exportfileName" value={UtilityMethods.prototype.fileName()}  autocomplete={"off"}/>
                     </div>
                 </div>
                 <div className="row db-dialog-prop-row">
@@ -1818,13 +1818,13 @@ class App extends React.Component {
         }
         setTimeout(function () {
             if (mindMapPatternTarget) {
-                //utilityMethods.mindmapPatternChange(mindMapPatternTarget);
+                this.diagramEvents.mindmapPatternChange(mindMapPatternTarget);
             }
         }, 0);
 
         return obj;
      }
-      //To set the port values
+      //Defining the port values
      getPort() {
         var port =
             [{
@@ -1941,7 +1941,7 @@ class App extends React.Component {
         switch (commandType) {
             case 'New':
                 diagram.clear();
-                DiagramClientSideEvents.prototype.historyChange();
+               
                 break;
             case 'Open':
                 document.getElementsByClassName('e-file-select-wrap')[0].querySelector('button').click();
