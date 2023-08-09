@@ -10,7 +10,6 @@ import { Uploader } from '@syncfusion/ej2-react-inputs';
 import { RadioButtonComponent, ButtonComponent, CheckBoxComponent } from "@syncfusion/ej2-react-buttons";
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 import { DropDownDataSources } from './script/dropdowndatasource';
-import { DiagramPropertyBinding } from './script/events';
 import { SelectorViewModel } from "./script/selector";
 import { UtilityMethods } from "./script/utilitymethods";
 import { PropertyChange } from "./script/properties";
@@ -363,14 +362,12 @@ class App extends React.Component {
         this.propertyChange = new PropertyChange();
         this.dropDownDataSources = new DropDownDataSources();
         this.diagramEvents = new DiagramClientSideEvents(this.selectedItem, this.page);
-        this.diagramPropertyBinding = new DiagramPropertyBinding(this.selectedItem, this.page);
         this.diagramEvents.ddlTextPosition = this.ddlTextPosition;
         this.dlgTarget = document.body;
         this.dialogVisibility = false;
         this.isModalDialog = false;
         this.dialogAnimationSettings = { effect: 'None' };
         this.exportingButtons = this.getDialogButtons('export');
-        
         this.printingButtons = this.getDialogButtons('print');
         loadDiagram=this.loadDiagram.bind(this);
         beforItem = this.beforeItemRender.bind(this);

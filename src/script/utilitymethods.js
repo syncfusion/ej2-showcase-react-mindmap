@@ -12,104 +12,7 @@ import { getConnector,getNode } from '../App';
          this.borderColorCode = ['#8BC1B7', '#E2C180', '#ACCBAA', '#D1AFDF', '#90C8C2', '#BBBFD6'];
          
      }
-     bindNodeProperties(node, selectedItem) {
-         selectedItem.preventPropertyChange = true;
-         selectedItem.nodeProperties.offsetX.value = (Math.round(node.offsetX * 100) / 100);
-         selectedItem.nodeProperties.offsetY.value = (Math.round(node.offsetY * 100) / 100);
-         selectedItem.nodeProperties.width.value = node.width ? (Math.round(node.width * 100) / 100) : (Math.round(node.minWidth * 100) / 100);
-         selectedItem.nodeProperties.height.value = node.height ? (Math.round(node.height * 100) / 100) : (Math.round(node.minHeight * 100) / 100);
-         selectedItem.nodeProperties.rotateAngle.value = node.rotateAngle;
-         selectedItem.nodeProperties.strokeColor.value = this.getHexColor(node.style.strokeColor);
-         selectedItem.nodeProperties.strokeStyle.value = node.style.strokeDashArray ? node.style.strokeDashArray : 'None';
-         selectedItem.nodeProperties.strokeWidth.value = node.style.strokeWidth;
-         selectedItem.nodeProperties.fillColor.value = this.getHexColor(node.style.fill);
-         selectedItem.nodeProperties.opacity.value = node.style.opacity * 100;
-         selectedItem.nodeProperties.opacityText = selectedItem.nodeProperties.opacity.value + '%';
-         selectedItem.nodeProperties.aspectRatio.checked = node.constraints & NodeConstraints.AspectRatio ? true : false;
-         selectedItem.preventPropertyChange = false;
-     }
      
-     bindTextProperties(text, selectedItem) {
-         selectedItem.preventPropertyChange = true;
-         selectedItem.textProperties.fontColor.value = this.getHexColor(text.color);
-         selectedItem.textProperties.fontFamily.value = text.fontFamily;
-         selectedItem.textProperties.fontSize.value = text.fontSize;
-         selectedItem.textProperties.opacity.value = text.opacity * 100;
-         selectedItem.textProperties.opacityText = selectedItem.textProperties.opacity + '%';
-         let toolbarTextStyle = document.getElementById('toolbarTextStyle');
-         if (toolbarTextStyle) {
-             toolbarTextStyle = toolbarTextStyle.ej2_instances[0];
-         }
-         if (toolbarTextStyle) {
-             toolbarTextStyle.items[0].cssClass = text.bold ? 'tb-item-start tb-item-selected' : 'tb-item-start';
-             toolbarTextStyle.items[1].cssClass = text.italic ? 'tb-item-middle tb-item-selected' : 'tb-item-middle';
-             toolbarTextStyle.items[2].cssClass = text.textDecoration === 'Underline' ? 'tb-item-end tb-item-selected' : 'tb-item-end';
-         }
-         this.updateTextAlign(text.textAlign);
-         selectedItem.preventPropertyChange = false;
-     }
-     updateTextAlign(textAlign) {
-         let toolbarTextSubAlignment = document.getElementById('toolbarTextSubAlignment');
-         if (toolbarTextSubAlignment) {
-             toolbarTextSubAlignment = toolbarTextSubAlignment.ej2_instances[0];
-         }
-         if (toolbarTextSubAlignment) {
-             for (const toolbarText of toolbarTextSubAlignment.items) {
-                 toolbarText.cssClass = toolbarText.cssClass.replace(' tb-item-selected', '');
-             }
-             const index = textAlign === 'Left' ? 0 : (textAlign === 'Center' ? 1 : 2);
-             toolbarTextSubAlignment.items[index].cssClass = toolbarTextSubAlignment.items[index].cssClass + ' tb-item-selected';
-         }
-     }
-     updateHorVertAlign(horizontalAlignment, verticalAlignment) {
-         let toolbarHorVerAlignment = document.getElementById('toolbarTextAlignment');
-         if (toolbarHorVerAlignment) {
-             toolbarHorVerAlignment = toolbarHorVerAlignment.ej2_instances[0];
-         }
-         if (toolbarHorVerAlignment) {
-             for (const toolbarHorVer of toolbarHorVerAlignment.items) {
-                 toolbarHorVer.cssClass = toolbarHorVer.cssClass.replace(' tb-item-selected', '');
-             }
-             let index = horizontalAlignment === 'Right' ? 0 : (horizontalAlignment === 'Center' ? 1 : 2);
-             toolbarHorVerAlignment.items[index].cssClass = toolbarHorVerAlignment.items[index].cssClass + ' tb-item-selected';
-             index = verticalAlignment === 'Bottom' ? 3 : (verticalAlignment === 'Center' ? 4 : 5);
-             toolbarHorVerAlignment.items[index].cssClass = toolbarHorVerAlignment.items[index].cssClass + ' tb-item-selected';
-         }
-     }
-     bindConnectorProperties(connector, selectedItem) {
-         selectedItem.preventPropertyChange = true;
-         selectedItem.connectorProperties.lineColor.value = this.getHexColor(connector.style.strokeColor);
-         selectedItem.connectorProperties.lineStyle.value = connector.style.strokeDashArray ? connector.style.strokeDashArray : 'None';
-         selectedItem.connectorProperties.lineType.value = connector.type;
-         selectedItem.connectorProperties.lineWidth.value = connector.style.strokeWidth;
-         selectedItem.connectorProperties.sourceType.value = connector.sourceDecorator.shape;
-         selectedItem.connectorProperties.targetType.value = connector.targetDecorator.shape;
-         selectedItem.connectorProperties.opacity.value = connector.style.opacity * 100;
-         selectedItem.connectorProperties.opacityText = selectedItem.connectorProperties.opacity + '%';
-         selectedItem.connectorProperties.lineJumpSize.value = connector.bridgeSpace;
-         selectedItem.connectorProperties.lineJump.value = connector.constraints ? true : false;
-         if (selectedItem.connectorProperties.lineJump.value) {
-             document.getElementById('lineJumpSizeDiv').style.display = '';
-         }
-         else {
-             document.getElementById('lineJumpSizeDiv').style.display = 'none';
-         }
-         selectedItem.connectorProperties.targetSize.value = connector.targetDecorator.width;
-         selectedItem.connectorProperties.sourceSize.value = connector.sourceDecorator.width;
-         selectedItem.preventPropertyChange = false;
-     }
-     getHexColor(colorStr) {
-         const colors = [];
-         // let a: HTMLDivElement = document.createElement('div');
-         // a.style.color = colorStr;
-         // let colors: number[] = window.getComputedStyle(document.body.appendChild(a)).color.match(/\d+/g).map(
-         //     (a: string): number => {
-         //         return parseInt(a, 10);
-         //     }
-         // );
-         // document.body.removeChild(a);
-         return (colors.length >= 3) ? '#' + (((1 << 24) + (colors[0] << 16) + (colors[1] << 8) + colors[2]).toString(16).substr(1)) : '';
-     }
      download = function (data) {
         if (window.navigator.msSaveBlob) {
             var blob = new Blob([data], { type: 'data:text/json;charset=utf-8,' });
@@ -162,57 +65,7 @@ import { getConnector,getNode } from '../App';
         }
         return sameLevelNodes;
     };
-     getOffset(position) {
-         switch (position.toLowerCase()) {
-             case 'topleft':
-                 return { x: 0, y: 0 };
-             case 'topcenter':
-                 return { x: 0.5, y: 0 };
-             case 'topright':
-                 return { x: 1, y: 0 };
-             case 'middleleft':
-                 return { x: 0, y: 0.5 };
-             default:
-                 return { x: 0.5, y: 0.5 };
-             case 'middleright':
-                 return { x: 1, y: 0.5 };
-             case 'bottomleft':
-                 return { x: 0, y: 1 };
-             case 'bottomcenter':
-                 return { x: 0.5, y: 1 };
-             case 'bottomright':
-                 return { x: 1, y: 1 };
-         }
-     }
-     getPosition(offset) {
-         if (offset.x === 0 && offset.y === 0) {
-             return 'TopLeft';
-         }
-         else if (offset.x === 0.5 && offset.y === 0) {
-             return 'TopCenter';
-         }
-         else if (offset.x === 1 && offset.y === 0) {
-             return 'TopRight';
-         }
-         else if (offset.x === 0 && offset.y === 0.5) {
-             return 'MiddleLeft';
-         }
-         else if (offset.x === 1 && offset.y === 0.5) {
-             return 'MiddleRight';
-         }
-         else if (offset.x === 0 && offset.y === 1) {
-             return 'BottomLeft';
-         }
-         else if (offset.x === 0.5 && offset.y === 1) {
-             return 'BottomCenter';
-         }
-         else if (offset.x === 1 && offset.y === 1) {
-             return 'BottomRight';
-         }
-         else {
-             return 'Center';
-         }
-     }
+    
      hideElements(elementType, diagram, diagramType) {
          const diagramContainer = document.getElementsByClassName('diagrambuilder-container')[0];
          if (diagramContainer.classList.contains(elementType)) {
@@ -227,94 +80,7 @@ import { getConnector,getNode } from '../App';
              diagram.updateViewPort();
          }
      }
-     objectTypeChange(objectType) {
-         document.getElementById('diagramPropertyContainer').style.display = 'none';
-         document.getElementById('nodePropertyContainer').style.display = 'none';
-         document.getElementById('textPropertyContainer').style.display = 'none';
-         document.getElementById('connectorPropertyContainer').style.display = 'none';
-         // eslint-disable-next-line
-         switch (objectType) {
-             case 'diagram':
-                 document.getElementById('diagramPropertyContainer').style.display = '';
-                 break;
-             case 'node':
-                 document.getElementById('nodePropertyContainer').style.display = '';
-                 break;
-             case 'connector':
-                 document.getElementById('connectorPropertyContainer').style.display = '';
-                 break;
-         }
-     }
     
-    
-     readTextFile(file, selectedItem) {
-         document.getElementsByClassName('sb-content-overlay')[0].style.display = '';
-         const ajax = new Ajax(file, 'GET', true);
-         ajax.send().then();
-         // let value = '../assets/dbstyle/flowchart_Images/CreditCardFlow.json'
-         // let context: any = this;
-         ajax.onSuccess = (data) => {
-             selectedItem.preventSelectionChange = true;
-             selectedItem.isTemplateLoad = true;
-             this.page.loadPage(data);
-             this.page. Settings();
-             selectedItem.isTemplateLoad = false;
-            
-             selectedItem.preventSelectionChange = false;
-             document.getElementsByClassName('sb-content-overlay')[0].style.display = 'none';
-         };
-         ajax.onFailure = (data) => {
-             document.getElementsByClassName('sb-content-overlay')[0].style.display = 'none';
-         };
-         ajax.onError = (evt) => {
-             document.getElementsByClassName('sb-content-overlay')[0].style.display = 'none';
-             return {};
-         };
-     }
-     
-    
-     enableToolbarItems(selectedItems) {
-         const toolbarContainer = document.getElementsByClassName('db-toolbar-container')[0];
-         let toolbarClassName = 'db-toolbar-container';
-         if (toolbarContainer.classList.contains('db-undo')) {
-             toolbarClassName += ' db-undo';
-         }
-         if (toolbarContainer.classList.contains('db-redo')) {
-             toolbarClassName += ' db-redo';
-         }
-         toolbarContainer.className = toolbarClassName;
-         if (selectedItems.length === 1) {
-             toolbarContainer.className = toolbarContainer.className + ' db-select';
-             if (selectedItems[0] instanceof Node) {
-                 if (selectedItems[0].children) {
-                     if (selectedItems[0].children.length > 2) {
-                         toolbarContainer.className = toolbarContainer.className + ' db-select db-double db-multiple db-node db-group';
-                     }
-                     else {
-                         toolbarContainer.className = toolbarContainer.className + ' db-select db-double db-node db-group';
-                     }
-                 }
-                 else {
-                     toolbarContainer.className = toolbarContainer.className + ' db-select db-node';
-                 }
-             }
-         }
-         else if (selectedItems.length === 2) {
-             toolbarContainer.className = toolbarContainer.className + ' db-select db-double';
-         }
-         else if (selectedItems.length > 2) {
-             toolbarContainer.className = toolbarContainer.className + ' db-select db-double db-multiple';
-         }
-         if (selectedItems.length > 1) {
-             // let isNodeExist: boolean = false;
-             for (const item of selectedItems) {
-                 if (item instanceof Node) {
-                     toolbarContainer.className = toolbarContainer.className + ' db-select db-node';
-                     break;
-                 }
-             }
-         }
-     }
      enableMenuItems(itemText, selectedItem) {
          if (selectedItem && selectedItem.selectedDiagram) {
              let selectedItems = selectedItem.selectedDiagram.selectedItems.nodes;
@@ -357,7 +123,7 @@ import { getConnector,getNode } from '../App';
                      return true;
                  }
                  if (itemText === 'Select All') {
-                     if (selectedItem.diagramType !== 'GeneralDiagram' || (selectedItem.selectedDiagram.nodes.length === 0 && selectedItem.selectedDiagram.connectors.length === 0)) {
+                     if (selectedItem.selectedDiagram.nodes.length === 0 && selectedItem.selectedDiagram.connectors.length === 0) {
                          return true;
                      }
                  }
