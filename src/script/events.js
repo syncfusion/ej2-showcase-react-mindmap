@@ -1,4 +1,4 @@
-import { Node, Diagram,Connector, ShapeAnnotation,Keys, PathAnnotation,KeyModifiers,SelectorConstraints,DiagramAction } from '@syncfusion/ej2-diagrams';
+import { Node, Keys, KeyModifiers,DiagramAction } from '@syncfusion/ej2-diagrams';
 import {hideUserHandle,changeUserHandlePosition,addNode,addSibilingChild,removeSelectedToolbarItem}   from "../App"
 import { UtilityMethods } from './utilitymethods';
 import { workingData } from '../App';

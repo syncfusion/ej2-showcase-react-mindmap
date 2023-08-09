@@ -1,5 +1,5 @@
 import { isNullOrUndefined } from '@syncfusion/ej2-base';
-import { Node, NodeConstraints, Connector, ConnectorConstraints } from '@syncfusion/ej2-diagrams';
+
 /* tslint:disable: name-of-rule-to-disable */
 export class NodeProperties {
     constructor() {

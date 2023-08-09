@@ -2,7 +2,6 @@
  *  Home page handler
  */
  import { NodeConstraints, Node } from '@syncfusion/ej2-diagrams';
- import { Ajax } from '@syncfusion/ej2-base';
 import { getConnector,getNode } from '../App';
  export class PaperSize {
  }
