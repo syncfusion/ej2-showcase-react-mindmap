@@ -31,8 +31,8 @@ export class PropertyChange {
                             case 'strokewidth':
                                 node.style.strokeWidth = args.propertyValue.value;
                                 if (node.inEdges.length > 0) {
-                                    var connector1 =getConnector(diagram.connectors, node.inEdges[0]);
-                                    connector1.style.strokeWidth = args.propertyValue.value;
+                                    var connector =getConnector(diagram.connectors, node.inEdges[0]);
+                                    connector.style.strokeWidth = args.propertyValue.value;
                                 }
                                 break;
                             case 'strokestyle':

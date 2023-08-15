@@ -1,5 +1,5 @@
 import { createElement, closest,formatUnit } from "@syncfusion/ej2-base";
-import { DiagramComponent, randomId,SelectorConstraints,MindMap,  ToolBase,  DiagramTools, NodeConstraints, ConnectorConstraints, UndoRedo, DiagramContextMenu, Snapping, DataBinding, PrintAndExport, BpmnDiagrams, HierarchicalTree, MindMap as MindMapTree, ConnectorBridging, LayoutAnimation, SymbolPalette } from "@syncfusion/ej2-react-diagrams";
+import { DiagramComponent, randomId,SelectorConstraints,MindMap,  ToolBase,  DiagramTools, NodeConstraints, ConnectorConstraints, UndoRedo, DiagramContextMenu, Snapping, DataBinding, PrintAndExport, ConnectorBridging, LayoutAnimation } from "@syncfusion/ej2-react-diagrams";
 import { Diagram,SnapConstraints} from "@syncfusion/ej2-react-diagrams";
 import { DropDownButtonComponent } from "@syncfusion/ej2-react-splitbuttons";
 import { DiagramClientSideEvents } from "./script/events";
@@ -16,8 +16,7 @@ import { PropertyChange } from "./script/properties";
 import { DataManager, Query } from "@syncfusion/ej2-data";
 import { PortVisibility } from '@syncfusion/ej2-diagrams';
 import { NumericTextBoxComponent,TextBoxComponent, ColorPickerComponent,SliderComponent } from "@syncfusion/ej2-react-inputs";
-Diagram.Inject(UndoRedo, DiagramContextMenu, Snapping, DataBinding);
-Diagram.Inject(PrintAndExport,MindMap, ConnectorBridging, LayoutAnimation);
+Diagram.Inject(UndoRedo, DiagramContextMenu, Snapping, DataBinding, PrintAndExport,MindMap, ConnectorBridging, LayoutAnimation);
 
 export let workingData = [
     { id: '1', Label: 'Creativity',  branch: 'Root', hasChild: true, level: 0, fill: "#D0ECFF", strokeColor: "#80BFEA", orientation: 'Root' },
@@ -39,26 +38,19 @@ export let beforeOpen;
 export let designContextMenuOpen;
 export let editContextMenuOpen;
 export let beforeClose;
-export let menuclick;
-export let tooledit;
+export let menuClick;
+export let editTool;
 export let hideToolbar;
 export let zoomTemplate;
 export let diagramView;
-export let textview;
-export let zoomchange;
+export let textView;
+export let zoomChange;
 export let diagramViewChange;
 export let textViewChange;
 export let enableMenuItems;
 export let dropElement;
-export let createNode;
-export let createConnector;
-export let nodeY;
-export let changeStateChange;
 export let footTemplate;
 export let printTemplateChange;
-export let setBinaryStateFromInput;
-export let RunSimulation;
-export let changeState;
 export let getNode; 
 export let addNode;
 export let setUserHandle;
@@ -73,19 +65,19 @@ export let templateType = "template1";
 var fillColorCode = ['#C4F2E8', '#F7E0B3', '#E5FEE4', '#E9D4F1', '#D4EFED', '#DEE2FF'];
 var borderColorCode = ['#8BC1B7', '#E2C180', '#ACCBAA', '#D1AFDF', '#90C8C2', '#BBBFD6'];
 var lastFillIndex = 0;
-var leftarrow = 'M11.924,6.202 L4.633,6.202 L4.633,9.266 L0,4.633 L4.632,0 L4.632,3.551 L11.923,3.551 L11.923,6.202Z';
-var rightarrow = 'M0,3.063 L7.292,3.063 L7.292,0 L11.924,4.633 L7.292,9.266 L7.292,5.714 L0.001,5.714 L0.001,3.063Z';
-var devareicon = 'M 7.04 22.13 L 92.95 22.13 L 92.95 88.8 C 92.95 91.92 91.55 94.58 88.76' +
+var leftArrow = 'M11.924,6.202 L4.633,6.202 L4.633,9.266 L0,4.633 L4.632,0 L4.632,3.551 L11.923,3.551 L11.923,6.202Z';
+var rightArrow = 'M0,3.063 L7.292,3.063 L7.292,0 L11.924,4.633 L7.292,9.266 L7.292,5.714 L0.001,5.714 L0.001,3.063Z';
+var deleteIcon = 'M 7.04 22.13 L 92.95 22.13 L 92.95 88.8 C 92.95 91.92 91.55 94.58 88.76' +
     '96.74 C 85.97 98.91 82.55 100 78.52 100 L 21.48 100 C 17.45 100 14.03 98.91 11.24 96.74 C 8.45 94.58 7.04' +
    '91.92 7.04 88.8 z M 32.22 0 L 67.78 0 L 75.17 5.47 L 100 5.47 L 100 16.67 L 0 16.67 L 0 5.47 L 24.83 5.47 z';
 
 //To hide userhandle when elements not selected in the diagram
 export function hideUserHandle(name) {
     var diagram = document.getElementById("diagram").ej2_instances[0];
-    for (var _i = 0, _a = diagram.selectedItems.userHandles; _i < _a.length; _i++) {
-        var handle_2 = _a[_i];
-        if (handle_2.name === name) {
-            handle_2.visible = false;
+    for (var i = 0, a = diagram.selectedItems.userHandles; i < a.length; i++) {
+        var handle2 = a[i];
+        if (handle2.name === name) {
+            handle2.visible = false;
         }
     }
 }
@@ -102,7 +94,7 @@ export function removeSelectedToolbarItem ()
     toolbarObj.dataBind();
    
 };
-//To get the color values for fil,stroke.
+//To get the color value for diagram node or connector fill or stroke properties
 export function getColor(colorName) {
     if (window.navigator.msSaveBlob && colorName.length === 9) {
         return colorName.substring(0, 7);
@@ -172,12 +164,12 @@ export function getTreeOrientation(tempData) {
     return orientation;
 }
 //set the value for UserHandle element
-export function applyHandle(handle, side, offset, margin, halignment, valignment) {
+export function applyHandle(handle, side, offset, margin, horizontalAlignment, verticalAlignment) {
     handle.side = side;
     handle.offset = offset;
     handle.margin = margin;
-    handle.horizontalAlignment = halignment;
-    handle.verticalAlignment = valignment;
+    handle.horizontalAlignment = horizontalAlignment;
+    handle.verticalAlignment = verticalAlignment;
 }
 //To get the orientation of the node to be added
 export function getOrientation() {
@@ -203,7 +195,7 @@ export function getOrientation() {
     return orientation;
 
 }
-//To show the property panel to add multiple child
+//To show the property panel while clicking the add multiple child button in toolbar
 export function addMultipleChild() {
     document.getElementById('mindMapContainer').style.display = 'none';
     document.getElementById('multipleChildPropertyContainer').style.display = '';
@@ -217,9 +209,9 @@ export function addSibilingChild(){
 if (selectedNode.data.branch !== 'Root') {
     var selectedNodeOrientation = selectedNode.addInfo.orientation.toString();
     var orientation_3 = selectedNodeOrientation;
-    var connector1 = getConnector(diagram.connectors, selectedNode.inEdges[0]);
+    var connectors = getConnector(diagram.connectors, selectedNode.inEdges[0]);
     diagram.startGroupAction();
-    var mindmapData = getMindMapShape(getNode(diagram.nodes, connector1.sourceID));
+    var mindmapData = getMindMapShape(getNode(diagram.nodes, connectors.sourceID));
     var node = mindmapData.node;
     index = index + 1;
     node.id = index.toString();
@@ -257,7 +249,7 @@ if (selectedNode.data.branch !== 'Root') {
     tempData[0].hasChild = true;
     workingData.push(nodeData);
     diagram.add(node);
-    var connector = setConnectorDefault(diagram, orientation_3, mindmapData.connector, connector1.sourceID, node.id);
+    var connector = setConnectorDefault(diagram, orientation_3, mindmapData.connector, connectors.sourceID, node.id);
     diagram.add(connector);
     var node1 = getNode(diagram.nodes, node.id);
     diagram.doLayout();
@@ -337,7 +329,6 @@ class App extends React.Component {
         super(props);
         this.animationSettings = { effect: 'None' };
         this.dropdownListFields = { text: 'text', value: 'value' };
-        this.clockinterval = window.setInterval(changeState, 3000);
         this.snapSettings ={ constraints: SnapConstraints.None }
         this.scrollSettings = { canAutoScroll: true, scrollLimit: 'Infinity', minZoom: 0.25, maxZoom: 30 };
         this.rulerSettings={ showRulers: true, 
@@ -351,12 +342,12 @@ class App extends React.Component {
                 segmentWidth: 100,
                 thickness: 25,
             },}
-        var leftuserhandle =   this.setUserHandle('leftHandle', leftarrow, 'Left', 0.5, { top: 10, bottom: 0, left: 0, right: 10 }, 'Left', 'Top');
+        var leftUserHandle =   this.setUserHandle('leftHandle', leftArrow, 'Left', 0.5, { top: 10, bottom: 0, left: 0, right: 10 }, 'Left', 'Top');
         // eslint-disable-next-line no-use-before-define
-        var rightuserhandle =  this.setUserHandle('rightHandle', rightarrow, 'Right', 0.5, { top: 10, bottom: 0, left: 10, right: 0 }, 'Right', 'Top');
+        var rightUserHandle =  this.setUserHandle('rightHandle', rightArrow, 'Right', 0.5, { top: 10, bottom: 0, left: 10, right: 0 }, 'Right', 'Top');
         // eslint-disable-next-line no-use-before-define
-        var devareuserhandle =  this.setUserHandle('devare', devareicon, 'Top', 0.5, { top: 0, bottom: 0, left: 0, right: 0 }, 'Center', 'Center');
-        var handle = [leftuserhandle, rightuserhandle, devareuserhandle];
+        var deleteUserHandle =  this.setUserHandle('devare', deleteIcon, 'Top', 0.5, { top: 0, bottom: 0, left: 0, right: 0 }, 'Center', 'Center');
+        var handle = [leftUserHandle, rightUserHandle, deleteUserHandle];
         this.selectedItems={ constraints: SelectorConstraints.UserHandle, userHandles: handle }
         this.selectedItem = new SelectorViewModel();
         this.propertyChange = new PropertyChange();
@@ -375,13 +366,13 @@ class App extends React.Component {
         editContextMenuOpen = this.editContextMenuOpen.bind(this);
         beforeOpen = this.arrangeMenuBeforeOpen.bind(this);
         beforeClose = this.arrangeMenuBeforeClose.bind(this);
-        menuclick = this.menuClick.bind(this);
-        tooledit = this.toolbarEditorClick.bind(this);
+         menuClick = this.menuClick.bind(this);
+        editTool = this.toolbarEditorClick.bind(this);
         hideToolbar = this.hideToolbar.bind(this);
         zoomTemplate = this.zoomTemplate.bind(this);
         diagramView = this.diagramView.bind(this);
-        textview =this.textview.bind(this);
-        zoomchange = this.zoomChange.bind(this);
+        textView =this.textView.bind(this);
+        zoomChange = this.zoomChange.bind(this);
         diagramViewChange= this.diagramViewChange.bind(this);
         textViewChange=this.textViewChange.bind(this)
         footTemplate = this.footerTemplate.bind(this);
@@ -405,7 +396,7 @@ class App extends React.Component {
     render() {
         return (<div>
             <input type="file" id="fileupload" name="UploadFiles"></input>
-            <ContextMenuComponent id='designContextMenu' ref={arrangeContextMenu => (this.arrangeContextMenu) = arrangeContextMenu} animationSettings={this.animationSettings} onOpen={designContextMenuOpen} cssClass="designMenu" beforeItemRender={beforItem} select={menuclick} beforeClose={() => this.arrangeMenuBeforeClose}/>
+            <ContextMenuComponent id='designContextMenu' ref={arrangeContextMenu => (this.arrangeContextMenu) = arrangeContextMenu} animationSettings={this.animationSettings} onOpen={designContextMenuOpen} cssClass="designMenu" beforeItemRender={beforItem} select={menuClick} beforeClose={() => this.arrangeMenuBeforeClose}/>
             <div className='diagrambuilder-container' >
                 <div className='header navbar'>
                     <div className="db-header-container">
@@ -420,28 +411,28 @@ class App extends React.Component {
                         </div>
                         <div className='db-menu-container'>
                             <div className="db-menu-style">
-                                <DropDownButtonComponent id="btnFileMenu" cssClass={"db-dropdown-menu"} content="File" items={this.dropDownDataSources.fileMenuItems}  select={menuclick}
+                                <DropDownButtonComponent id="btnFileMenu" cssClass={"db-dropdown-menu"} content="File" items={this.dropDownDataSources.fileMenuItems}  select={menuClick}
                                 beforeItemRender={beforItem} beforeOpen={beforeOpen} beforeClose={beforeClose}/>
                                 
                             </div>
                             <div className="db-menu-style">
                                 < DropDownButtonComponent id="btnEditMenu" cssClass={"db-dropdown-menu"} content="Edit"
-                                    items={this.dropDownDataSources.editMenuItems} select={menuclick} 
+                                    items={this.dropDownDataSources.editMenuItems} select={menuClick} 
                                     beforeItemRender={beforItem} beforeOpen={beforeOpen} beforeClose={beforeClose}/>
                             </div>
                             <div className="db-menu-style">
-                                <DropDownButtonComponent id="btnViewMenu" cssClass={"db-dropdown-menu"} content="View" items={this.dropDownDataSources.viewMenuItems}  select={menuclick}
+                                <DropDownButtonComponent id="btnViewMenu" cssClass={"db-dropdown-menu"} content="View" items={this.dropDownDataSources.viewMenuItems}  select={menuClick}
                                 beforeItemRender={beforItem} beforeOpen={beforeOpen} beforeClose={beforeClose}/>
                             </div>  
                             <div className="db-menu-style">
-                                <DropDownButtonComponent id="btnWindowMenu" cssClass={"db-dropdown-menu"} content="Window" items={this.dropDownDataSources.windowMenuItems}  select={menuclick}
+                                <DropDownButtonComponent id="btnWindowMenu" cssClass={"db-dropdown-menu"} content="Window" items={this.dropDownDataSources.windowMenuItems}  select={menuClick}
                                 beforeItemRender={beforItem} beforeOpen={beforeOpen} beforeClose={beforeClose}/>
                             </div> 
                         </div>
                     </div>
                     <div className='db-toolbar-editor' >
                         <div className='db-toolbar-container'>
-                        <ToolbarComponent ref={toolbar => (this.toolbarEditor) = toolbar} id='toolbarEditor' overflowMode='Scrollable' clicked={tooledit}>
+                        <ToolbarComponent ref={toolbar => (this.toolbarEditor) = toolbar} id='toolbarEditor' overflowMode='Scrollable' clicked={editTool}>
                             <ItemsDirective>
                                 <ItemDirective prefixIcon= 'sf-icon-undo tb-icons' tooltipText= 'Undo' />
                                 <ItemDirective prefixIcon="sf-icon-redo tb-icons" tooltipText="Redo" />
@@ -453,7 +444,7 @@ class App extends React.Component {
                                 <ItemDirective prefixIcon= 'sf-icon-add-sibling' tooltipText= 'Add Sibling' disabled="true" />
                                 <ItemDirective prefixIcon= 'sf-icon-multiple-child' tooltipText= 'Add Multiple Child' disabled="true"/>
                                 <ItemDirective tooltipText="Diagram View" template={diagramView} align='Right'/>
-                                <ItemDirective tooltipText="Text View" template={textview} align='Right'/>
+                                <ItemDirective tooltipText="Text View" template={textView} align='Right'/>
                                 <ItemDirective type="Separator"/>
                                 <ItemDirective cssClass="tb-item-end tb-zoom-dropdown-btn" template={zoomTemplate} align='Right'/>
                             </ItemsDirective>
@@ -699,13 +690,19 @@ class App extends React.Component {
                                     <div className="col-xs-3 db-col-left db-prop-text-style" style={{paddingTop:"5px"}}>
                                         <span className="db-prop-text-style db-spacing-text">Stroke </span>
                                         <div className="db-color-container e-text-spacing">
-                                            <ColorPickerComponent id='mindmapStroke' mode="Palette" showButtons={false} change={this.mindmapStrokeColorChange.bind(this)}></ColorPickerComponent>
+                                            <ColorPickerComponent id='mindmapStroke' mode="Palette" showButtons={false} change={this.mindMapStrokeColorChange.bind(this)}></ColorPickerComponent>
                                         </div>
                                     </div>
-                                    <div className="col-xs-5 db-col-center db-prop-text-style" style={{paddingTop:"5px"}}>
+                                    {/* <div className="col-xs-5 db-col-center db-prop-text-style" style={{paddingTop:"5px"}}>
                                         <span className="db-prop-text-style db-spacing-text">Type</span>
                                         <div className="e-text-spacing">
                                             <DropDownListComponent id="mindmapStrokeStyle" index={0} dataSource={this.dropDownDataSources.borderStyles} fields={this.dropdownListFields} itemTemplate={this.nodeBorderItemTemplate} valueTemplate={this.nodeBorderValueTemplate} change={this.mindmapStrokeStyleChange.bind(this)}/>
+                                        </div>
+                                    </div> */}
+                                    <div className="col-xs-5 db-col-center db-prop-text-style"  style={{paddingTop:"5px"}}>
+                                        <span className="db-prop-text-style db-spacing-text">Type</span>
+                                        <div className="e-text-spacing">
+                                          <DropDownListComponent id="mindmapStrokeStyle" index={0} dataSource={this.dropDownDataSources.borderStyles} fields={this.dropdownListFields} itemTemplate={this.nodeBorderItemTemplate} valueTemplate={this.nodeBorderValueTemplate} change={this.mindmapStrokeStyleChange.bind(this)}/>
                                         </div>
                                     </div>
                                     <div className="col-xs-4 db-col-right db-prop-text-style" style={{paddingTop:"5px"}}>
@@ -733,10 +730,10 @@ class App extends React.Component {
                                 </div>
                                 <div className="row db-prop-row">
                                     <div className="col-xs-4 db-col-left">
-                                        <RadioButtonComponent  id="radio1" label="Bezier" value="Bezier" name="bezier" checked={true} change={this.bezierChange.bind(this)}/>
+                                        <RadioButtonComponent  id="bezierRadioButton " label="Bezier" value="Bezier" name="bezier" checked={true} change={this.bezierChange.bind(this)}/>
                                     </div>
                                     <div className="col-xs-4 db-col-right">
-                                        <RadioButtonComponent  id="radio2" label="Straight" value="Straight" name="straight" checked={false} change={this.straightChange.bind(this)}/>
+                                        <RadioButtonComponent  id="straightRadioButton " label="Straight" value="Straight" name="straight" checked={false} change={this.straightChange.bind(this)}/>
                                     </div>
                                 </div>
                                 <div className="db-prop-separator">
@@ -900,7 +897,7 @@ class App extends React.Component {
         
     }
      //To change the stroke color of the nodes/connectors
-    mindmapStrokeColorChange(args){
+     mindMapStrokeColorChange(args){
         var diagram = document.getElementById("diagram").ej2_instances[0];
         if (isToolbarClicked) {
             diagram.selectedItems.nodes[0].style.strokeColor = args.currentValue.hex;
@@ -968,7 +965,7 @@ class App extends React.Component {
 //To change the connector to bezier
     bezierChange(){
         var diagram = document.getElementById("diagram").ej2_instances[0];
-        var straightRadioButton = document.getElementById("radio2").ej2_instances[0];
+        var straightRadioButton = document.getElementById("straightRadioButton").ej2_instances[0];
         straightRadioButton.checked = false;
         straightRadioButton.dataBind();
         connectorType = "Bezier";
@@ -980,7 +977,7 @@ class App extends React.Component {
     //To change the connector to straight
     straightChange(){
         var diagram = document.getElementById("diagram").ej2_instances[0];
-        var bezierRadioButton = document.getElementById("radio1").ej2_instances[0];
+        var bezierRadioButton = document.getElementById("bezierRadioButton ").ej2_instances[0];
         bezierRadioButton.checked = false;
         bezierRadioButton.dataBind();
         connectorType = "Straight";
@@ -1158,7 +1155,7 @@ class App extends React.Component {
     }
 
   
-     setUserHandle(name, pathData, side, offset, margin, halignment, valignment) {
+     setUserHandle(name, pathData, side, offset, margin, horizontalAlignment, verticalAlignment) {
         var userhandle = {
             name: name,
             pathData: pathData,
@@ -1167,29 +1164,29 @@ class App extends React.Component {
             side: side,
             offset: offset,
             margin: margin,
-            horizontalAlignment: halignment,
-            verticalAlignment: valignment,
+            horizontalAlignment: horizontalAlignment,
+            verticalAlignment: verticalAlignment,
         };
         return userhandle;
     }
     //To select the mindmap levels
      addMindMapLevels(level) {
-        var mindmap = document.getElementById('mindMapLevels');
-        var dropdownlist = mindmap.ej2_instances[0];
-        var dropdowndatasource = dropdownlist.dataSource;
+        var mindMap = document.getElementById('mindMapLevels');
+        var dropDownList = mindMap.ej2_instances[0];
+        var dropDownDataSource = dropDownList.dataSource;
         var isExist = false;
-        for (var i = 0; i < dropdowndatasource.length; i++) {
-            var data = dropdowndatasource[i];
+        for (var i = 0; i < dropDownDataSource.length; i++) {
+            var data = dropDownDataSource[i];
             if (data.text === level) {
                 isExist = true;
                 break;
             }
         }
         if (!isExist) {
-            dropdowndatasource.push({ text: level, value: level });
+            dropDownDataSource.push({ text: level, value: level });
         }
-        dropdownlist.dataSource = dropdowndatasource;
-        dropdownlist.dataBind();
+        dropDownList.dataSource = dropDownDataSource;
+        dropDownList.dataBind();
     };
     getConnector(connectors, name) {
         for (var i = 0; i < connectors.length; i++) {
@@ -1209,7 +1206,7 @@ class App extends React.Component {
     };
     //To get mindmap shape
      getMindMapShape(parentNode) {
-        var sss = {};
+        var element = {};
         var node = {};
         var connector = {};
         var addInfo = parentNode.addInfo;
@@ -1264,9 +1261,9 @@ class App extends React.Component {
         //connector.constraints = ej.diagrams.ConnectorConstraints.PointerEvents | ej.diagrams.ConnectorConstraints.Select | ej.diagrams.ConnectorConstraints.Delete;
         node.constraints = NodeConstraints.Default & ~NodeConstraints.Drag;
         node.ports = [{ id: 'leftPort', offset: { x: 0, y: 0.5 } }, { id: 'rightPort', offset: { x: 1, y: 0.5 } }];
-        sss.node = node;
-        sss.connector = connector;
-        return sss;
+        element.node = node;
+        element.connector = connector;
+        return element;
     };
     
      setConnectorDefault(diagram, orientation, connector, sourceID, targetID) {
@@ -1537,7 +1534,7 @@ class App extends React.Component {
 //Zoom change button in toolbar
     zoomTemplate() {
         return (<div id="template_toolbar">
-            <DropDownButtonComponent id="btnZoomIncrement" items={this.dropDownDataSources.zoomMenuItems} content={this.selectedItem.scrollSettings.currentZoom} select={zoomchange}/>
+            <DropDownButtonComponent id="btnZoomIncrement" items={this.dropDownDataSources.zoomMenuItems} content={this.selectedItem.scrollSettings.currentZoom} select={zoomChange}/>
         </div>);
     }
     //diagram view radio button in toolbar
@@ -1548,7 +1545,7 @@ class App extends React.Component {
         
     }
     //textview radio button in toolbar
-    textview(){
+    textView(){
         return (<div id="template_toolbar" style={{marginLeft:"2px"}}>
         <RadioButtonComponent id="textview"value="Text View" label="Text View" change={textViewChange}></RadioButtonComponent>
     </div>);
@@ -1638,7 +1635,8 @@ class App extends React.Component {
                 zoomCurrentValue.content = (diagram.scrollSettings.currentZoom * 100).toFixed() + '%';
                 break;
             case 'Zoom to Fit':
-                diagram.fitToPage({ mode: 'Page', region: 'Content'});
+                zoom.zoomFactor = 1 / currentZoom - 1;
+                diagram.zoomTo(zoom);
                 zoomCurrentValue.content = diagram.scrollSettings.currentZoom;
                 break;
             case 'Zoom to 50%':
@@ -1912,21 +1910,21 @@ class App extends React.Component {
         var menuObj = document.getElementById("contextmenu").ej2_instances[0]
         var targetNodeId = treeObj.selectedNodes[0];
         var targetNode = document.querySelector('[data-uid="' + targetNodeId + '"]');
-        if (targetNode.classList.contains('remove')) {
-            menuObj.enableItems(['Remove Item'], false);
-        }
-        else {
-            menuObj.enableItems(['Remove Item'], true);
-        }
-        if (targetNode.classList.contains('rename')) {
-            menuObj.enableItems(['Rename Item'], false);
-        }
-        else {
-            menuObj.enableItems(['Rename Item'], true);
-        }
+            if (targetNode.classList.contains('remove')) {
+                menuObj.enableItems(['Remove Item'], false);
+            }
+            else {
+                menuObj.enableItems(['Remove Item'], true);
+            }
+            if (targetNode.classList.contains('rename')) {
+                menuObj.enableItems(['Rename Item'], false);
+            }
+            else {
+                menuObj.enableItems(['Rename Item'], true);
+            }
 }
 //event triggered on menu items click
-    menuClick(args) {
+   menuClick(args) {
         const buttonElement = document.getElementsByClassName('e-btn-hover')[0];
         if (buttonElement) {
             buttonElement.classList.remove('e-btn-hover');
@@ -1938,7 +1936,6 @@ class App extends React.Component {
         switch (commandType) {
             case 'New':
                 diagram.clear();
-               
                 break;
             case 'Open':
                 document.getElementsByClassName('e-file-select-wrap')[0].querySelector('button').click();
@@ -1981,11 +1978,11 @@ class App extends React.Component {
                 break;
             case "Zoom In":
                 diagram.zoomTo({ type: 'ZoomIn', zoomFactor: 0.2 });
-                zoomCurrentValue.content = diagram.scrollSettings.currentZoom = (diagram.scrollSettings.currentZoom * 100).toFixed() + '%';
+                zoomCurrentValue.content = this.selectedItem.scrollSettings.currentZoom
                 break;
             case 'Zoom Out':
                 diagram.zoomTo({ type: 'ZoomOut', zoomFactor: 0.2 });
-                zoomCurrentValue.content = diagram.scrollSettings.currentZoom = (diagram.scrollSettings.currentZoom * 100).toFixed() + '%';
+                zoomCurrentValue.content = this.selectedItem.scrollSettings.currentZoom
                 break;
             case 'Show Toolbar':
                 UtilityMethods.prototype.hideElements('hide-toolbar', diagram);
@@ -2001,75 +1998,17 @@ class App extends React.Component {
                 node1.style.visibility = node1.style.visibility === "hidden" ? node1.style.visibility = "visible" : node1.style.visibility = "hidden";
                 args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
                 break;
-            case 'showpagebreaks':
-                args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
-                diagram.pageSettings.showPageBreaks = !diagram.pageSettings.showPageBreaks;
-                break;
-            case 'showmultiplepage':
-                args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
-                diagram.pageSettings.multiplePage = !diagram.pageSettings.multiplePage;
-                break;
-                case 'Selection Tool':
-                    diagram.tool = DiagramTools.Default;
-                    removeSelectedToolbarItem();
-                    break;
-                case 'Pan Tool':
-                    diagram.clearSelection();
-                    diagram.tool = DiagramTools.ZoomPan;
-                    removeSelectedToolbarItem();
-                    break;
                 case 'Show Lines':
                     diagram.snapSettings.constraints = diagram.snapSettings.constraints ^ SnapConstraints.ShowLines;
-                    args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
-                    break;
-                case 'Snap To Grid':
-                    diagram.snapSettings.constraints = diagram.snapSettings.constraints ^ SnapConstraints.SnapToLines;
-                    args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
-                    break;
-                case 'Snap To Object':
-                    diagram.snapSettings.constraints = diagram.snapSettings.constraints ^ SnapConstraints.SnapToObject;
                     args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
                     break;
                 case 'Show Rulers':
                     args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
                     diagram.rulerSettings.showRulers = !diagram.rulerSettings.showRulers;
                     break;
-                case 'Show Page Breaks':
-                    args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
-                    diagram.pageSettings.showPageBreaks = !diagram.pageSettings.showPageBreaks;
-                        //showPageBreaks.checked = !showPageBreaks.checked;
-                    break;
-                case 'Show Multiple page':
-                    args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
-                    diagram.pageSettings.multiplePage = ! diagram.pageSettings.multiplePage;
-                    break;
-                case 'Fit To Width':
-                    diagram.fitToPage({mode:'Width'});
-                    break;
                 case 'Fit To Screen':
                     diagram.fitToPage({ mode: 'Page', region: 'Content'});
                     break;
-                    case 'Landscape':
-                args.item.parentObj.items[1].iconCss = '';
-                args.item.iconCss = 'sf-icon-check-tick';
-                diagram.pageSettings.orientation = 'Landscape';
-                break;
-            case 'Portrait':
-                args.item.parentObj.items[0].iconCss = '';
-                args.item.iconCss = 'sf-icon-check-tick';
-                diagram.pageSettings.orientation = 'Portrait';
-                break;
-            case 'Letter (8.5 in x 11 in)':
-            case 'Legal (8.5 in x 14 in)':
-            case 'A3 (297 mm x 420 mm)':
-            case 'A4 (210 mm x 297 mm)':
-            case 'A5 (148 mm x 210 mm)':
-            case 'A6 (105 mm x 148 mm)':
-            case 'Tabloid (279 mm x 432 mm)':
-                this.paperListChange(args,diagram)
-                this.selectedItem.pageSettings.paperSize = args.item.value;
-                this.updateSelection(args.item);
-                break;
         }
         diagram.dataBind();
     }
@@ -2098,6 +2037,7 @@ class App extends React.Component {
             }
             else {
                 if (pageHeight > pageWidth) {
+                    // eslint-disable-next-line no-redeclare
                     var temp = pageHeight;
                     pageHeight = pageWidth;
                     pageWidth = temp;

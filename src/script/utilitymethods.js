@@ -11,7 +11,7 @@ import { getConnector,getNode } from '../App';
          this.borderColorCode = ['#8BC1B7', '#E2C180', '#ACCBAA', '#D1AFDF', '#90C8C2', '#BBBFD6'];
          
      }
-     
+     //To save the diagram
      download = function (data) {
         if (window.navigator.msSaveBlob) {
             var blob = new Blob([data], { type: 'data:text/json;charset=utf-8,' });
@@ -27,6 +27,7 @@ import { getConnector,getNode } from '../App';
             a.remove();
         }
     }
+    //To navigate the child to the specified direction
     navigateChild (direction) {
         var diagram=document.getElementById("diagram").ej2_instances[0];
         var node = null;
@@ -43,6 +44,7 @@ import { getConnector,getNode } from '../App';
             diagram.select([node]);
         }
     }
+    //get nodes that are in same level
     getSameLevelNodes() {
         var diagram=document.getElementById("diagram").ej2_instances[0];
         var sameLevelNodes = [];
@@ -64,7 +66,7 @@ import { getConnector,getNode } from '../App';
         }
         return sameLevelNodes;
     };
-    
+    //To hide toolbar, propertypanel
      hideElements(elementType, diagram, diagramType) {
          const diagramContainer = document.getElementsByClassName('diagrambuilder-container')[0];
          if (diagramContainer.classList.contains(elementType)) {
@@ -79,66 +81,8 @@ import { getConnector,getNode } from '../App';
              diagram.updateViewPort();
          }
      }
-    
-     enableMenuItems(itemText, selectedItem) {
-         if (selectedItem && selectedItem.selectedDiagram) {
-             let selectedItems = selectedItem.selectedDiagram.selectedItems.nodes;
-             selectedItems = selectedItems.concat(selectedItem.selectedDiagram.selectedItems.connectors);
-             if (itemText) {
-                 const commandType = itemText.replace(/[' ']/g, '');
-                 if (selectedItems.length === 0 || selectedItem.diagramType !== 'GeneralDiagram') {
-                    // eslint-disable-next-line
-                     switch (commandType.toLowerCase()) {
-                         case 'edittooltip':
-                             let disable = false;
-                             if (!(selectedItems.length === 1)) {
-                                 disable = true;
-                             }
-                             return disable;
-                         case 'cut':
-                             return true;
-                         case 'copy':
-                             return true;
-                         case 'delete':
-                             return true;
-                         case 'duplicate':
-                             return true;
-                     }
-                 }
-                 if (selectedItems.length > 1) {
-                    // eslint-disable-next-line
-                     switch (commandType.toLowerCase()) {
-                         case 'edittooltip':
-                             return true;
-                     }
-                 }
-                 if (selectedItem.pasteData.length === 0 && itemText === 'Paste') {
-                     return true;
-                 }
-                 if (itemText === 'Undo' && selectedItem.selectedDiagram.historyManager.undoStack.length === 0) {
-                     return true;
-                 }
-                 if (itemText === 'Redo' && selectedItem.selectedDiagram.historyManager.redoStack.length === 0) {
-                     return true;
-                 }
-                 if (itemText === 'Select All') {
-                     if (selectedItem.selectedDiagram.nodes.length === 0 && selectedItem.selectedDiagram.connectors.length === 0) {
-                         return true;
-                     }
-                 }
-                 if (selectedItem.diagramType !== 'GeneralDiagram') {
-                     if (itemText === 'Themes' || itemText === 'Paste' || itemText === 'Show Rulers' || itemText === 'Show Guides'
-                         || itemText === 'Show Grid' || itemText === 'Snap To Grid' || itemText === 'Show Stencil') {
-                         return true;
-                     }
-                 }
-             }
-         }
-         return false;
-     }
+ 
      enableArrangeMenuItems(selectedItem) {
-         // const contextInstance: any = document.getElementById('arrangeContextMenu');
-         // const contextMenu: ContextMenu = contextInstance.ej2_instances[0] as ContextMenu;
          const contextMenu = this.arrangeContextMenu;
          let selectedItems = selectedItem.selectedDiagram.selectedItems.nodes;
          selectedItems = selectedItems.concat(selectedItem.selectedDiagram.selectedItems.connectors);
@@ -166,41 +110,8 @@ import { getConnector,getNode } from '../App';
              }
          }
      }
-     getPaperSize(paperName) {
-         const paperSize = new PaperSize();
-         // eslint-disable-next-line
-         switch (paperName) {
-             case 'Letter':
-                 paperSize.pageWidth = 816;
-                 paperSize.pageHeight = 1056;
-                 break;
-             case 'Legal':
-                 paperSize.pageWidth = 816;
-                 paperSize.pageHeight = 1344;
-                 break;
-             case 'Tabloid':
-                 paperSize.pageWidth = 1056;
-                 paperSize.pageHeight = 1632;
-                 break;
-             case 'A3':
-                 paperSize.pageWidth = 1122;
-                 paperSize.pageHeight = 1587;
-                 break;
-             case 'A4':
-                 paperSize.pageWidth = 793;
-                 paperSize.pageHeight = 1122;
-                 break;
-             case 'A5':
-                 paperSize.pageWidth = 559;
-                 paperSize.pageHeight = 793;
-                 break;
-             case 'A6':
-                 paperSize.pageWidth = 396;
-                 paperSize.pageHeight = 559;
-                 break;
-         }
-         return paperSize;
-     }
+    
+    //To remove the child node
      removeChild(selectedItem) {
         var diagram = document.getElementById("diagram").ej2_instances[0];
          if (diagram.selectedItems.nodes.length > 0) {
@@ -210,6 +121,7 @@ import { getConnector,getNode } from '../App';
             diagram.doLayout();
         }
      }
+      //Remove the subchild Elements
      removeSubChild(node){
         var diagram = document.getElementById("diagram").ej2_instances[0];
         for (var i = node.outEdges.length - 1; i >= 0; i--) {
@@ -233,8 +145,8 @@ import { getConnector,getNode } from '../App';
             }
             if (index > 0) {
                 var node1 = childNode.outEdges[index - 1];
-                var connector1 =  diagram.getObject(node1);
-                var node2 =  getNode( diagram.nodes, connector1.targetID);
+                var connectors =  diagram.getObject(node1);
+                var node2 =  getNode( diagram.nodes, connectors.targetID);
                 diagram.select([node2]);
             }
             else {
@@ -243,16 +155,11 @@ import { getConnector,getNode } from '../App';
         }
         diagram.remove(node);
      }
-  
-     hideMenuItems() {
-         const btnWindow = document.getElementById('btnWindowMenu');
-         btnWindow.ej2_instances[0].items[1].iconCss = '';
-         const btnView = document.getElementById('btnViewMenu');
-         btnView.ej2_instances[0].items[7].iconCss = '';
-     }
+ //To get the fileName
      fileName(){
         return document.getElementById('diagramName').innerHTML;
     }
+    //To get the minimum distance node
      getMinDistanceNode(diagram, direction) {
         var node = diagram.selectedItems.nodes[0];
         var parentBounds = node.wrapper.bounds;
