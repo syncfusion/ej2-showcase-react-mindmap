@@ -452,7 +452,6 @@ class App extends React.Component {
                         </div>
                         <div className="db-toolbar-hide-btn">
                         <ButtonComponent  id="btnHideToolbar" isPrimary= {true} iconCss={'sf-icon-properties'} align='Right' onClick={this.hideToolbar.bind(this)}></ButtonComponent>
-                            {/* <button id="btnHideToolbar"></button> */}
                         </div>
                     </div>
                 </div>
@@ -693,16 +692,10 @@ class App extends React.Component {
                                             <ColorPickerComponent id='mindmapStroke' mode="Palette" showButtons={false} change={this.mindMapStrokeColorChange.bind(this)}></ColorPickerComponent>
                                         </div>
                                     </div>
-                                    {/* <div className="col-xs-5 db-col-center db-prop-text-style" style={{paddingTop:"5px"}}>
+                                    <div className="col-xs-5 db-col-center db-prop-text-style" style={{paddingTop:"5px"}}>
                                         <span className="db-prop-text-style db-spacing-text">Type</span>
                                         <div className="e-text-spacing">
-                                            <DropDownListComponent id="mindmapStrokeStyle" index={0} dataSource={this.dropDownDataSources.borderStyles} fields={this.dropdownListFields} itemTemplate={this.nodeBorderItemTemplate} valueTemplate={this.nodeBorderValueTemplate} change={this.mindmapStrokeStyleChange.bind(this)}/>
-                                        </div>
-                                    </div> */}
-                                    <div className="col-xs-5 db-col-center db-prop-text-style"  style={{paddingTop:"5px"}}>
-                                        <span className="db-prop-text-style db-spacing-text">Type</span>
-                                        <div className="e-text-spacing">
-                                          <DropDownListComponent id="mindmapStrokeStyle" index={0} dataSource={this.dropDownDataSources.borderStyles} fields={this.dropdownListFields} itemTemplate={this.nodeBorderItemTemplate} valueTemplate={this.nodeBorderValueTemplate} change={this.mindmapStrokeStyleChange.bind(this)}/>
+                                            <DropDownListComponent id="mindmapStrokeStyle" popupWidth="170px" index={0} dataSource={this.dropDownDataSources.borderStyles} fields={this.dropdownListFields} itemTemplate={this.nodeBorderItemTemplate} valueTemplate={this.nodeBorderValueTemplate} change={this.mindmapStrokeStyleChange.bind(this)}/>
                                         </div>
                                     </div>
                                     <div className="col-xs-4 db-col-right db-prop-text-style" style={{paddingTop:"5px"}}>
@@ -730,10 +723,10 @@ class App extends React.Component {
                                 </div>
                                 <div className="row db-prop-row">
                                     <div className="col-xs-4 db-col-left">
-                                        <RadioButtonComponent  id="bezierRadioButton " label="Bezier" value="Bezier" name="bezier" checked={true} change={this.bezierChange.bind(this)}/>
+                                        <RadioButtonComponent  id="bezierRadioButton" label="Bezier" value="Bezier" name="bezier" checked={true} change={this.bezierChange.bind(this)}/>
                                     </div>
                                     <div className="col-xs-4 db-col-right">
-                                        <RadioButtonComponent  id="straightRadioButton " label="Straight" value="Straight" name="straight" checked={false} change={this.straightChange.bind(this)}/>
+                                        <RadioButtonComponent  id="straightRadioButton" label="Straight" value="Straight" name="straight" checked={false} change={this.straightChange.bind(this)}/>
                                     </div>
                                 </div>
                                 <div className="db-prop-separator">
@@ -977,7 +970,7 @@ class App extends React.Component {
     //To change the connector to straight
     straightChange(){
         var diagram = document.getElementById("diagram").ej2_instances[0];
-        var bezierRadioButton = document.getElementById("bezierRadioButton ").ej2_instances[0];
+        var bezierRadioButton = document.getElementById("bezierRadioButton").ej2_instances[0];
         bezierRadioButton.checked = false;
         bezierRadioButton.dataBind();
         connectorType = "Straight";
@@ -1335,7 +1328,7 @@ class App extends React.Component {
                         File Name
                 </div>
                     <div className="row db-dialog-child-prop-row">
-                        <input type="text" id="exportfileName" value={UtilityMethods.prototype.fileName()}  autocomplete={"off"}/>
+                        <input type="text" id="exportfileName" value={UtilityMethods.prototype.fileName()}  autoComplete="off"/>
                     </div>
                 </div>
                 <div className="row db-dialog-prop-row">
@@ -1910,6 +1903,7 @@ class App extends React.Component {
         var menuObj = document.getElementById("contextmenu").ej2_instances[0]
         var targetNodeId = treeObj.selectedNodes[0];
         var targetNode = document.querySelector('[data-uid="' + targetNodeId + '"]');
+        if(targetNode){
             if (targetNode.classList.contains('remove')) {
                 menuObj.enableItems(['Remove Item'], false);
             }
@@ -1922,6 +1916,10 @@ class App extends React.Component {
             else {
                 menuObj.enableItems(['Rename Item'], true);
             }
+        }
+        else{
+            args.cancel =true;
+        }
 }
 //event triggered on menu items click
    menuClick(args) {
@@ -1932,6 +1930,8 @@ class App extends React.Component {
         const diagram = this.selectedItem.selectedDiagram;
         const commandType = args.item.text;
         var zoomCurrentValue = document.getElementById("btnZoomIncrement").ej2_instances[0];
+        var currentZoom = diagram.scrollSettings.currentZoom;
+        var zoom = {};
         // eslint-disable-next-line default-case
         switch (commandType) {
             case 'New':
@@ -2007,7 +2007,9 @@ class App extends React.Component {
                     diagram.rulerSettings.showRulers = !diagram.rulerSettings.showRulers;
                     break;
                 case 'Fit To Screen':
-                    diagram.fitToPage({ mode: 'Page', region: 'Content'});
+                    zoom.zoomFactor = 1 / currentZoom - 1;
+                    diagram.zoomTo(zoom);
+                    zoomCurrentValue.content = diagram.scrollSettings.currentZoom;
                     break;
         }
         diagram.dataBind();
