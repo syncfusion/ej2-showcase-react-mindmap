@@ -1516,11 +1516,12 @@ class App extends React.Component {
                     addMultipleChild();
                     break;
             }
-            if (item === 'Select Tool' || item === 'Pan Tool'  ) {
+            if (item === 'Undo' || item === 'Redo' || item === 'Select Tool' || item === 'Pan Tool' || item === 'Add Child' || item === 'Add Sibling' || item === 'Add Multiple Child') {
                 if (args.item.cssClass.indexOf('tb-item-selected') === -1) {
                     removeSelectedToolbarItem();
                     args.item.cssClass += ' tb-item-selected';
                 }
+                diagram.dataBind();
             }
             diagram.dataBind();
         };
