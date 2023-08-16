@@ -476,15 +476,9 @@ export class DiagramClientSideEvents {
     //history change event
     historyChange(args) {
         var diagram = document.getElementById("diagram").ej2_instances[0];
-        var toolbarContainer = document.getElementsByClassName('db-toolbar-container')[0];
-        toolbarContainer.classList.remove('db-undo');
-        toolbarContainer.classList.remove('db-redo');
-        if (diagram.historyManager.undoStack.length > 0) {
-            toolbarContainer.classList.add('db-undo');
-        }
-        if (diagram.historyManager.redoStack.length > 0) {
-            toolbarContainer.classList.add('db-redo');
-        }
+        var toolbarEditor = document.getElementById('toolbarEditor').ej2_instances[0];;
+        diagram.historyManager.undoStack.length > 0 ? toolbarEditor.items[0].disabled = false : toolbarEditor.items[0].disabled = true
+        diagram.historyManager.redoStack.length > 0 ? toolbarEditor.items[1].disabled = false : toolbarEditor.items[1].disabled = true
        
     }
     //To change the pattern of mindmap

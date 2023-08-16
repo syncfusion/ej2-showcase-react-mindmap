@@ -434,8 +434,8 @@ class App extends React.Component {
                         <div className='db-toolbar-container'>
                         <ToolbarComponent ref={toolbar => (this.toolbarEditor) = toolbar} id='toolbarEditor' overflowMode='Scrollable' clicked={editTool}>
                             <ItemsDirective>
-                                <ItemDirective prefixIcon= 'sf-icon-undo tb-icons' tooltipText= 'Undo' />
-                                <ItemDirective prefixIcon="sf-icon-redo tb-icons" tooltipText="Redo" />
+                                <ItemDirective prefixIcon= 'sf-icon-undo tb-icons' tooltipText= 'Undo' disabled={false}/>
+                                <ItemDirective prefixIcon="sf-icon-redo tb-icons" tooltipText="Redo" disabled={true}/>
                                 <ItemDirective type="Separator"/>
                                 <ItemDirective prefixIcon= 'sf-icon-pointer' tooltipText= 'Select Tool' cssClass='tb-item-middle tb-item-selected'/>
                                 <ItemDirective prefixIcon= 'sf-icon-pan' tooltipText= 'Pan Tool' cssClass='tb-item-middle'/>
