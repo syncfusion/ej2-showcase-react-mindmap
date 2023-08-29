@@ -396,16 +396,16 @@ export class DiagramClientSideEvents {
             //Update connector connection direction
             var srcNode = args.element;
             var targetNode = args.target;
-            var srctreeInfo = srcNode.data;
-            var targettreeInfo = targetNode.data;
+            var srcTreeInfo = srcNode.data;
+            var targetTreeInfo = targetNode.data;
             var canUpdate = true;
-            if (srctreeInfo.branch === 'Right' && targettreeInfo.branch === 'Left') {
+            if (srcTreeInfo.branch === 'Right' && targetTreeInfo.branch === 'Left') {
                 this.updateDataSource(args.element, args.target);
                 connector.sourcePortID = targetNode.ports[1].id;
                 connector.targetPortID = srcNode.ports[0].id;
                 this.updateRightTopicOutEdges(srcNode);
                 canUpdate = false;
-            } else if (srctreeInfo.branch === 'Left' && targettreeInfo.branch === 'Right') {
+            } else if (srcTreeInfo.branch === 'Left' && targetTreeInfo.branch === 'Right') {
                 this.updateDataSource(args.element, args.target);
                 connector.sourcePortID = targetNode.ports[0].id;
                 connector.targetPortID = srcNode.ports[1].id;
@@ -443,10 +443,10 @@ export class DiagramClientSideEvents {
     updateLeftTopicOutEdges(node){
         var diagram=document.getElementById("diagram").ej2_instances[0];
         for (var i = 0; i < node.outEdges.length; i++) {
-            var outconnector = diagram.getObject(node.outEdges[i]);
-            outconnector.sourcePortID = 'leftPort';
-            outconnector.targetPortID = 'rightPort';
-            var targetNode = diagram.getObject(outconnector.targetID);
+            var outConnector = diagram.getObject(node.outEdges[i]);
+            outConnector.sourcePortID = 'leftPort';
+            outConnector.targetPortID = 'rightPort';
+            var targetNode = diagram.getObject(outConnector.targetID);
             // eslint-disable-next-line no-loop-func
             var tempData = workingData.filter((a) => a.id === targetNode.id);
             targetNode.data.parentId = node.data.id;
@@ -476,15 +476,9 @@ export class DiagramClientSideEvents {
     //history change event
     historyChange(args) {
         var diagram = document.getElementById("diagram").ej2_instances[0];
-        var toolbarContainer = document.getElementsByClassName('db-toolbar-container')[0];
-        toolbarContainer.classList.remove('db-undo');
-        toolbarContainer.classList.remove('db-redo');
-        if (diagram.historyManager.undoStack.length > 0) {
-            toolbarContainer.classList.add('db-undo');
-        }
-        if (diagram.historyManager.redoStack.length > 0) {
-            toolbarContainer.classList.add('db-redo');
-        }
+        var toolbarEditor = document.getElementById('toolbarEditor').ej2_instances[0];;
+        diagram.historyManager.undoStack.length > 0 ? toolbarEditor.items[0].disabled = false : toolbarEditor.items[0].disabled = true
+        diagram.historyManager.redoStack.length > 0 ? toolbarEditor.items[1].disabled = false : toolbarEditor.items[1].disabled = true
        
     }
     //To change the pattern of mindmap
