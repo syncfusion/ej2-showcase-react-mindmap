@@ -1608,6 +1608,9 @@ class App extends React.Component {
                         return true;
                     }
                 }
+                if (itemText === 'Show Shortcuts' && document.getElementById('overlay').style.display === 'none') {
+                    return true;
+                }
             }
         }
         return false;
