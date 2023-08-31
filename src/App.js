@@ -1347,28 +1347,12 @@ class App extends React.Component {
 
                         </div>
                     </div>
-                    <div className="col-xs-6 db-col-right">
-                        <div className="row">
-                            Region
-                    </div>
-                        <div className="row db-dialog-child-prop-row">
-                            <DropDownListComponent ref={dropdown => this.ddlTextPosition = dropdown} id="exportRegion" value={this.selectedItem.exportSettings.region} dataSource={this.dropDownDataSources.diagramRegions} fields={this.dropdownListFields}/>
-                        </div>
-                    </div>
                 </div>
             </div>);
     }
        //To render print dialog
     printTemplate() {
         return (<div id="printDialogContent">
-                <div className="row">
-                    <div className="row">
-                        Region
-                </div>
-                    <div className="row db-dialog-child-prop-row">
-                        <DropDownListComponent ref={dropdown => this.ddlTextPosition = dropdown} value={this.selectedItem.printSettings.region} dataSource={this.dropDownDataSources.diagramRegions} fields={this.dropdownListFields}/>
-                    </div>
-                </div>
                 <div className="row db-dialog-prop-row">
                     <div className="row">
                         Print Settings
