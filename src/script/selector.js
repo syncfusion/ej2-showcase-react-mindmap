@@ -310,7 +310,7 @@ export class ExportSettings {
     constructor() {
         this.mFileName = 'Diagram';
         this.mFormat = 'JPG';
-        this.mRegion = 'PageSettings';
+        this.mRegion = 'Content';
     }
     get fileName() {
         return this.mFileName;
@@ -333,7 +333,7 @@ export class ExportSettings {
 }
 export class PrintSettings {
     constructor() {
-        this.mRegion = 'PageSettings';
+        this.mRegion = 'Content';
         this.mPageWidth = 0;
         this.mPageHeight = 0;
         this.mIsPortrait = true;

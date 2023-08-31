@@ -11,7 +11,7 @@ export class DropDownDataSources {
         ];
          //To specify diagram regions items
         this.diagramRegions = [
-            { text: 'Content', value: 'Content' }, { text: 'PageSettings', value: 'PageSettings' }
+            { text: 'Content', value: 'Content' }
         ];
          //To specify format that we can import
         this.importFormat = [

@@ -1,5 +1,5 @@
 import { createElement, closest,formatUnit } from "@syncfusion/ej2-base";
-import { DiagramComponent, randomId,SelectorConstraints,MindMap,  ToolBase,  DiagramTools, NodeConstraints, ConnectorConstraints, UndoRedo, DiagramContextMenu, Snapping, DataBinding, PrintAndExport, ConnectorBridging, LayoutAnimation } from "@syncfusion/ej2-react-diagrams";
+import { DiagramComponent, randomId,SelectorConstraints,MindMap,  ToolBase, DiagramAction, DiagramTools, NodeConstraints, ConnectorConstraints, UndoRedo, DiagramContextMenu, Snapping, DataBinding, PrintAndExport, ConnectorBridging, LayoutAnimation } from "@syncfusion/ej2-react-diagrams";
 import { Diagram,SnapConstraints} from "@syncfusion/ej2-react-diagrams";
 import { DropDownButtonComponent } from "@syncfusion/ej2-react-splitbuttons";
 import { DiagramClientSideEvents } from "./script/events";
@@ -266,8 +266,11 @@ class LeftExtendTool extends ToolBase {
     mouseUp(args) {
         if (this.inAction) {
             var selectedElement = this.commandHandler.getSelectedObject();
+            var diagram = document.getElementById("diagram").ej2_instances[0];
             if (selectedElement[0] && selectedElement[0].inEdges !== undefined){
+                diagram.diagramActions |= DiagramAction.PreventHistory;
                 addNode('Right');
+                diagram.diagramActions &= ~ DiagramAction.PreventHistory;
             }
         }
     }
@@ -282,9 +285,12 @@ class RightExtendTool extends ToolBase {
     //mouseDown event
     mouseUp(args) {
         if (this.inAction) {
+            var diagram = document.getElementById("diagram").ej2_instances[0];
             var selectedObject = this.commandHandler.getSelectedObject();
             if (selectedObject[0] && selectedObject[0].inEdges !== undefined){
+                diagram.diagramActions |= DiagramAction.PreventHistory;
                 addNode('Left');
+                diagram.diagramActions &= ~ DiagramAction.PreventHistory;
             }
         }
     }
@@ -434,7 +440,7 @@ class App extends React.Component {
                         <div className='db-toolbar-container'>
                         <ToolbarComponent ref={toolbar => (this.toolbarEditor) = toolbar} id='toolbarEditor' overflowMode='Scrollable' clicked={editTool}>
                             <ItemsDirective>
-                                <ItemDirective prefixIcon= 'sf-icon-undo tb-icons' tooltipText= 'Undo' disabled={false}/>
+                                <ItemDirective prefixIcon= 'sf-icon-undo tb-icons' tooltipText= 'Undo' disabled={true}/>
                                 <ItemDirective prefixIcon="sf-icon-redo tb-icons" tooltipText="Redo" disabled={true}/>
                                 <ItemDirective type="Separator"/>
                                 <ItemDirective prefixIcon= 'sf-icon-pointer' tooltipText= 'Select Tool' cssClass='tb-item-middle tb-item-selected'/>
@@ -1026,7 +1032,7 @@ class App extends React.Component {
         PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'textOpacity', propertyValue: args });
     }
     textStyleClicked(args) {
-    PropertyChange.prototype.mindMapPropertyChange({ propertyName: args.item.tooltipText.toLowerCase(), propertyValue: false });
+            PropertyChange.prototype.mindMapPropertyChange({ propertyName: args.item.tooltipText.toLowerCase(), propertyValue: false });
 }
 // Horizontal spacing
     horizontalSpacingBtnChange(args){
@@ -1658,7 +1664,11 @@ class App extends React.Component {
         var diagram = document.getElementById("diagram").ej2_instances[0];
         var textRadioButton = document.getElementById("textview").ej2_instances[0];
         var btnWindowMenu = document.getElementById("btnWindowMenu").ej2_instances[0];
-         textRadioButton.checked = false;
+        var toolbarObj = document.getElementById("toolbarEditor").ej2_instances[0];
+        textRadioButton.checked = false;
+        toolbarObj.items[0].disabled = false;
+        toolbarObj.items[3].disabled = false;
+        toolbarObj.items[4].disabled = false
          diagram.dataSourceSettings.dataSource = new DataManager(workingData);
          diagram.dataBind();
          document.getElementById('overlay').style.display = 'block';
@@ -1671,8 +1681,12 @@ class App extends React.Component {
     textViewChange(){ 
         var diagram = document.getElementById("diagram").ej2_instances[0];
         var diagramRadioButton = document.getElementById("diagramView").ej2_instances[0];
+        var toolbarObj = document.getElementById("toolbarEditor").ej2_instances[0];
         diagram.clearSelection();
         diagramRadioButton.checked = false;
+        toolbarObj.items[0].disabled = true;
+        toolbarObj.items[3].disabled = true;
+        toolbarObj.items[4].disabled = true;
         var treeObj = document.getElementById("treeView").ej2_instances[0];
         treeObj.fields.dataSource = new DataManager(workingData);
         treeObj.dataBind();
