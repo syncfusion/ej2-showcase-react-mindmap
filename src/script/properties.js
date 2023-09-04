@@ -101,16 +101,34 @@ export class PropertyChange {
                     break;
                 case 'bold':
                     annotation.bold = !annotation.bold;
+                    this.updateToolbarState('toolbarTextStyle', annotation.bold, 0);
                     break;
                 case 'italic':
                     annotation.italic = !annotation.italic;
+                    this.updateToolbarState('toolbarTextStyle', annotation.italic, 1);
                     break;
                 case 'underline':
                     annotation.textDecoration = annotation.textDecoration === 'None' || !annotation.textDecoration ? 'Underline' : 'None';
+                    this.updateToolbarState('toolbarTextStyle', annotation.textDecoration, 2);
                     break;
             }
         }
         diagram.dataBind();
     }
+     updateToolbarState(toolbarName, isSelected, index)
+    {
+       var toolbarTextStyle = document.getElementById(toolbarName);
+       if (toolbarTextStyle) {
+           toolbarTextStyle = toolbarTextStyle.ej2_instances[0];
+       }
+       if (toolbarTextStyle) {
+           var cssClass = toolbarTextStyle.items[index].cssClass;
+           if(isSelected==="None"){
+            isSelected=false;
+           }
+           toolbarTextStyle.items[index].cssClass = isSelected ? cssClass + ' tb-item-selected' : cssClass.replace(' tb-item-selected', '');
+           toolbarTextStyle.dataBind();
+       }
+     };
    
 }
