@@ -60,6 +60,7 @@
 }
 
 /*! input layout */
+
 .e-input-group,
 .e-input-group.e-control-wrapper {
   display: table;
@@ -189,6 +190,33 @@ textarea.e-input,
   color: rgba(0, 0, 0, 0.87);
 }
 
+.e-btn:focus,
+.e-css.e-btn:focus {
+  background-color: rgba(0, 0, 0, 0.18);
+  border-color: transparent;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.87);
+  outline: #fafafa 0 solid;
+  outline-offset: 0;
+}
+
 .e-menu-item e-blankicon {
   padding-left: 28px;
 } 
+
+.e-input-group .e-input-group-icon::after,
+.e-input-group.e-control-wrapper .e-input-group-icon::after {
+  background: #bdbdbd;
+  border-radius: 100%;
+  content: '';
+  display: block;
+  filter: alpha(opacity=75);
+  height: 50%;
+  left: 25%;
+  opacity: .75;
+  position: absolute;
+  top: 25%;
+  transform: scale(0);
+  width: 50%;
+}
+
