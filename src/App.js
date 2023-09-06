@@ -1334,7 +1334,7 @@ class App extends React.Component {
                         File Name
                 </div>
                     <div className="row db-dialog-child-prop-row">
-                        <input type="text" id="exportfileName" value={UtilityMethods.prototype.fileName()}  autoComplete="off"/>
+                        <input type="text" id="exportfileName" defaultValue="Untitled Diagram"  autoComplete="off"/>
                     </div>
                 </div>
                 <div className="row db-dialog-prop-row">
