@@ -443,8 +443,8 @@ class App extends React.Component {
                                 <ItemDirective prefixIcon= 'sf-icon-undo tb-icons' tooltipText= 'Undo' disabled={true}/>
                                 <ItemDirective prefixIcon="sf-icon-redo tb-icons" tooltipText="Redo" disabled={true}/>
                                 <ItemDirective type="Separator"/>
-                                <ItemDirective prefixIcon= 'sf-icon-pointer' tooltipText= 'Select Tool' cssClass='tb-item-middle tb-item-selected'/>
-                                <ItemDirective prefixIcon= 'sf-icon-pan' tooltipText= 'Pan Tool' cssClass='tb-item-middle'/>
+                                <ItemDirective prefixIcon= 'sf-icon-pointer' tooltipText= 'Select Tool' cssClass='tb-item-middle tb-item-selected disableItem'/>
+                                <ItemDirective prefixIcon= 'sf-icon-pan' tooltipText= 'Pan Tool' cssClass='tb-item-middle disableItem'/>
                                 <ItemDirective type="Separator"/>
                                 <ItemDirective prefixIcon= 'sf-icon-add-child' tooltipText= 'Add Child' disabled="true"/>
                                 <ItemDirective prefixIcon= 'sf-icon-add-sibling' tooltipText= 'Add Sibling' disabled="true" />
@@ -637,7 +637,7 @@ class App extends React.Component {
                                 </ul>
                             </div>
                         </div>
-                        <div className='db-property-editor-container' style={{overflow:"auto"}}>
+                        <div className='db-property-editor-container' id="propertyPanel" style={{overflow:"auto"}}>
                             <div id="propertyHeader" className="row db-prop-header-text">
                                 Properties
                             </div>
@@ -1334,7 +1334,7 @@ class App extends React.Component {
                         File Name
                 </div>
                     <div className="row db-dialog-child-prop-row">
-                        <input type="text" id="exportfileName" value={UtilityMethods.prototype.fileName()}  autoComplete="off"/>
+                        <input type="text" id="exportfileName" defaultValue="Untitled Diagram"  autoComplete="off"/>
                     </div>
                 </div>
                 <div className="row db-dialog-prop-row">
@@ -1419,13 +1419,10 @@ class App extends React.Component {
     }   
     btnExportClick() {
         var diagram = this.selectedItem.selectedDiagram;
-        var region= document.getElementById("exportRegion").ej2_instances[0];
         var format= document.getElementById("exportFormat").ej2_instances[0];
-        // var fileName = document.getElementById("exportfileName").ej2_instances[0];
         diagram.exportDiagram({
             fileName: this.selectedItem.exportSettings.fileName,
             format: format.value,
-            region: region.value,
            multiplePage:diagram.pageSettings.multiplePage
         });
         this.exportDialog.hide();
@@ -1524,14 +1521,14 @@ class App extends React.Component {
     //diagram view radio button in toolbar
     diagramView(){
          return (<div id="template_toolbar" style={{marginLeft:"2px"}}>
-         <RadioButtonComponent id="diagramView"value="Diagram View" label="Diagram View" checked={true} change={diagramViewChange}></RadioButtonComponent>
+         <RadioButtonComponent id="diagramView"value="Diagram View" name="mindmapView" label="Diagram View" checked={true} change={diagramViewChange}></RadioButtonComponent>
      </div>);
         
     }
     //textview radio button in toolbar
     textView(){
         return (<div id="template_toolbar" style={{marginLeft:"2px"}}>
-        <RadioButtonComponent id="textview"value="Text View" label="Text View" change={textViewChange}></RadioButtonComponent>
+        <RadioButtonComponent id="textview"value="Text View" name="mindmapView" label="Text View" change={textViewChange}></RadioButtonComponent>
     </div>);
     }
     nodeEdited(args){
@@ -1551,56 +1548,57 @@ class App extends React.Component {
     }
    // To enable the toolbar items
     enableMenuItems(itemText, selectedItem) {
-        if (selectedItem && selectedItem.selectedDiagram) {
-            let selectedItems = selectedItem.selectedDiagram.selectedItems.nodes;
-            selectedItems = selectedItems.concat(selectedItem.selectedDiagram.selectedItems.connectors);
-            if (itemText) {
-                const commandType = itemText.replace(/[' ']/g, '');
-                if (selectedItems.length === 0 || selectedItem.diagramType !== 'GeneralDiagram') {
-                   // eslint-disable-next-line
-                    switch (commandType.toLowerCase()) {
-                        case 'edittooltip':
-                            let disable = false;
-                            if (!(selectedItems.length === 1)) {
-                                disable = true;
-                            };
-                            return disable;
-                        case 'cut':
-                            return true;
-                        case 'copy':
-                            return true;
-                        case 'delete':
-                            return true;
-                        case 'duplicate':
-                            return true;
-                    }
-                }
-                if (selectedItems.length > 1) {
-                   // eslint-disable-next-line
-                    switch (commandType.toLowerCase()) {
-                        case 'edittooltip':
-                            return true;
-                    }
-                }
-                if (selectedItem.pasteData.length === 0 && itemText === 'Paste') {
-                    return true;
-                }
-                if (itemText === 'Undo' && selectedItem.selectedDiagram.historyManager.undoStack.length === 0) {
-                    return true;
-                }
-                if (itemText === 'Redo' && selectedItem.selectedDiagram.historyManager.redoStack.length === 0) {
-                    return true;
-                }
-               
-                if (selectedItem.diagramType !== 'GeneralDiagram') {
-                    if (itemText === 'Themes' || itemText === 'Paste'  || itemText === 'Show Guides'
-                        || itemText === 'Show Grid' || itemText === 'Show Stencil') {
+        let diagram = document.getElementById("diagram").ej2_instances[0];
+        let selectedItems = selectedItem.selectedDiagram.selectedItems.nodes;
+        selectedItems = selectedItems.concat(selectedItem.selectedDiagram.selectedItems.connectors);
+        if (itemText) {
+            var commandType = itemText.replace(/[' ']/g, '');
+            if (selectedItems.length === 0) {
+                // eslint-disable-next-line default-case
+                switch (commandType.toLowerCase()) {
+                    case 'edittooltip':
+                        var disable = false;
+                        if (!(selectedItems.length === 1)) {
+                            disable = true;
+                        }
+                        return disable;
+                    case 'cut':
                         return true;
-                    }
+                    case 'copy':
+                        return true;
+                    case 'delete':
+                        return true;
+                    case 'duplicate':
+                        return true;
                 }
-                if (itemText === 'Show Shortcuts' && document.getElementById('overlay').style.display === 'none') {
+            }
+            if (selectedItems.length > 1) {
+                // eslint-disable-next-line default-case
+                switch (commandType.toLowerCase()) {
+                    case 'edittooltip':
+                        return true;
+                }
+            }
+            if (!(diagram.commandHandler.clipboardData.pasteIndex !== undefined
+                && diagram.commandHandler.clipboardData.clipObject !== undefined) && itemText === 'Paste') {
+                return true;
+            }
+            if (itemText === 'Undo' && selectedItem.selectedDiagram.historyManager.undoStack.length === 0) {
+                return true;
+            }
+            if (itemText === 'Redo' && selectedItem.selectedDiagram.historyManager.redoStack.length === 0) {
+                return true;
+            }
+            if (itemText === 'Select All') {
+                if ((selectedItem.selectedDiagram.nodes.length === 0 && selectedItem.selectedDiagram.connectors.length === 0)) {
                     return true;
                 }
+            }
+            if (itemText === 'Themes') {
+                return true;
+            }
+            if (itemText === 'Show Shortcuts' && document.getElementById('overlay').style.display === 'none') {
+                return true;
             }
         }
         return false;
@@ -1646,15 +1644,13 @@ class App extends React.Component {
       //Method to change diagramview in toolbar
     diagramViewChange(){
         var diagram = document.getElementById("diagram").ej2_instances[0];
-        var textRadioButton = document.getElementById("textview").ej2_instances[0];
         var btnWindowMenu = document.getElementById("btnWindowMenu").ej2_instances[0];
-        var toolbarObj = document.getElementById("toolbarEditor").ej2_instances[0];
-        textRadioButton.checked = false;
-        toolbarObj.items[0].disabled = false;
-        toolbarObj.items[3].disabled = false;
-        toolbarObj.items[4].disabled = false
+        let toolbarObj = document.getElementsByClassName('disableItem');
+        toolbarObj[0].style.cssText = 'pointer-events: all !important; opacity:1';
+        toolbarObj[1].style.cssText = 'pointer-events: all !important; opacity:1';
          diagram.dataSourceSettings.dataSource = new DataManager(workingData);
          diagram.dataBind();
+         document.getElementById('propertyPanel').style.display = 'block';
          document.getElementById('overlay').style.display = 'block';
          document.getElementById('treeview').style.display = 'none';
          document.getElementById('shortcutDiv').style.visibility = 'visible';
@@ -1664,16 +1660,14 @@ class App extends React.Component {
     //Method to change treeview in toolbar
     textViewChange(){ 
         var diagram = document.getElementById("diagram").ej2_instances[0];
-        var diagramRadioButton = document.getElementById("diagramView").ej2_instances[0];
-        var toolbarObj = document.getElementById("toolbarEditor").ej2_instances[0];
         diagram.clearSelection();
-        diagramRadioButton.checked = false;
-        toolbarObj.items[0].disabled = true;
-        toolbarObj.items[3].disabled = true;
-        toolbarObj.items[4].disabled = true;
+        var toolbarObj = document.getElementsByClassName('disableItem');
+        toolbarObj[0].style.cssText = 'pointer-events: none !important; opacity:0.5';
+        toolbarObj[1].style.cssText = 'pointer-events: none !important; opacity:0.5';
         var treeObj = document.getElementById("treeView").ej2_instances[0];
         treeObj.fields.dataSource = new DataManager(workingData);
         treeObj.dataBind();
+        document.getElementById('propertyPanel').style.display = 'none';
         document.getElementById('overlay').style.display = 'none';
         document.getElementById('treeview').style.display = 'block';
         document.getElementById('shortcutDiv').style.visibility = 'hidden';
