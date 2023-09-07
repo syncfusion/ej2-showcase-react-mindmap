@@ -993,17 +993,7 @@ class App extends React.Component {
         verticalButton.checked = false;
         if(horizontalButton.checked){
             diagram.layout.orientation = "Horizontal";
-            for(var i=0;i<diagram.connectors.length;i++){
-                var connector = diagram.connectors[i];
-                if( connector.sourcePortID==="bottomPort" && connector.targetPortID==="topPort"){
-                    connector.sourcePortID = 'rightPort';
-                    connector.targetPortID="leftPort"
-                }
-                if( connector.sourcePortID==="topPort" && connector.targetPortID==="bottomPort"){
-                    connector.sourcePortID = 'leftPort';
-                    connector.targetPortID = 'rightPort';
-                }
-            }
+            this.updateOrientation(diagram)
             diagram.dataBind();
         }
     }
@@ -1015,18 +1005,33 @@ class App extends React.Component {
         horizontalButton.checked = false;
         if(verticalButton.checked){
             diagram.layout.orientation = "Vertical";
-            for(var i=0;i<diagram.connectors.length;i++){
-                var connector = diagram.connectors[i];
-                if( connector.sourcePortID==="rightPort" && connector.targetPortID==="leftPort"){
-                    connector.sourcePortID = 'bottomPort';
-                    connector.targetPortID="topPort"
-                }
-                if( connector.sourcePortID==="leftPort" && connector.targetPortID==="rightPort"){
-                    connector.sourcePortID = 'topPort';
-                    connector.targetPortID = 'bottomPort';
-                }
-            }
+            this.updateOrientation(diagram)
             diagram.dataBind();
+        }
+    }
+    //To update the layout based on the orientation
+    updateOrientation(diagram) {
+        for (var i = 0; i < diagram.connectors.length; i++) {
+          var connector = diagram.connectors[i];
+          if (diagram.layout.orientation === "Vertical") {
+            if (connector.sourcePortID === "rightPort" && connector.targetPortID === "leftPort") {
+              connector.sourcePortID = 'bottomPort';
+              connector.targetPortID = "topPort";
+            }
+            if (connector.sourcePortID === "leftPort" && connector.targetPortID === "rightPort") {
+              connector.sourcePortID = 'topPort';
+              connector.targetPortID = 'bottomPort';
+            }
+          } else if (diagram.layout.orientation === "Horizontal") {
+            if (connector.sourcePortID === "bottomPort" && connector.targetPortID === "topPort") {
+              connector.sourcePortID = 'rightPort';
+              connector.targetPortID = "leftPort";
+            }
+            if (connector.sourcePortID === "topPort" && connector.targetPortID === "bottomPort") {
+              connector.sourcePortID = 'leftPort';
+              connector.targetPortID = 'rightPort';
+            }
+          }
         }
     }
     //To change fontfamily of the text
@@ -1866,19 +1871,7 @@ class App extends React.Component {
             connector.targetPortID = targetNode.ports[0].id;
             connector.style = { strokeWidth: 1, strokeColor: '#3498DB' };
         }
-        if(diagram.layout.orientation === "Vertical"){
-            for(var i=0;i<diagram.connectors.length;i++){
-                var connectors = diagram.connectors[i];
-                if( connectors.sourcePortID==="rightPort" && connectors.targetPortID==="leftPort"){
-                    connectors.sourcePortID = 'bottomPort';
-                    connectors.targetPortID="topPort"
-                }
-                if( connectors.sourcePortID==="leftPort" && connectors.targetPortID==="rightPort"){
-                    connectors.sourcePortID = 'topPort';
-                    connectors.targetPortID = 'bottomPort';
-                }
-            }
-        }
+        this.updateOrientation(diagram);
         connector.constraints &= ~ConnectorConstraints.Select;
         return connector;
     };
