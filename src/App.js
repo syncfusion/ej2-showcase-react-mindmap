@@ -991,9 +991,9 @@ class App extends React.Component {
         var horizontalButton = document.getElementById("horizontal").ej2_instances[0];
         var verticalButton = document.getElementById("vertical").ej2_instances[0];
         verticalButton.checked = false;
-        //horizontalButton.dataBind();
         if(horizontalButton.checked){
             diagram.layout.orientation = "Horizontal";
+            this.updateOrientation(diagram)
             diagram.dataBind();
         }
     }
@@ -1003,10 +1003,35 @@ class App extends React.Component {
         var horizontalButton = document.getElementById("horizontal").ej2_instances[0];
         var verticalButton = document.getElementById("vertical").ej2_instances[0];
         horizontalButton.checked = false;
-        // verticalButton.dataBind();
         if(verticalButton.checked){
             diagram.layout.orientation = "Vertical";
+            this.updateOrientation(diagram)
             diagram.dataBind();
+        }
+    }
+    //To update the layout based on the orientation
+    updateOrientation(diagram) {
+        for (var i = 0; i < diagram.connectors.length; i++) {
+          var connector = diagram.connectors[i];
+          if (diagram.layout.orientation === "Vertical") {
+            if (connector.sourcePortID === "rightPort" && connector.targetPortID === "leftPort") {
+              connector.sourcePortID = 'bottomPort';
+              connector.targetPortID = "topPort";
+            }
+            if (connector.sourcePortID === "leftPort" && connector.targetPortID === "rightPort") {
+              connector.sourcePortID = 'topPort';
+              connector.targetPortID = 'bottomPort';
+            }
+          } else if (diagram.layout.orientation === "Horizontal") {
+            if (connector.sourcePortID === "bottomPort" && connector.targetPortID === "topPort") {
+              connector.sourcePortID = 'rightPort';
+              connector.targetPortID = "leftPort";
+            }
+            if (connector.sourcePortID === "topPort" && connector.targetPortID === "bottomPort") {
+              connector.sourcePortID = 'leftPort';
+              connector.targetPortID = 'rightPort';
+            }
+          }
         }
     }
     //To change fontfamily of the text
@@ -1259,7 +1284,7 @@ class App extends React.Component {
         connector.targetDecorator = { shape: 'None' };
         //connector.constraints = ej.diagrams.ConnectorConstraints.PointerEvents | ej.diagrams.ConnectorConstraints.Select | ej.diagrams.ConnectorConstraints.Delete;
         node.constraints = NodeConstraints.Default & ~NodeConstraints.Drag;
-        node.ports = [{ id: 'leftPort', offset: { x: 0, y: 0.5 } }, { id: 'rightPort', offset: { x: 1, y: 0.5 } }];
+        node.ports = [{ id: 'leftPort', offset: { x: 0, y: 0.5 } }, { id: 'rightPort', offset: { x: 1, y: 0.5 } },{ id: 'topPort', offset: { x: 0.5, y: 0 } },{ id: 'bottomPort', offset: { x: 0.5, y: 1 } }];
         element.node = node;
         element.connector = connector;
         return element;
@@ -1819,6 +1844,13 @@ class App extends React.Component {
                 id: 'rightPort', offset: { x: 1, y: 0.5 }, visibility: PortVisibility.Hidden,
                 style: { fill: 'black' }
             },
+            {   id: 'topPort', offset: { x: 0.5, y: 0 }, visibility: PortVisibility.Hidden,
+                style: { fill: 'black' }
+            },
+            { 
+                id: 'bottomPort', offset: { x: 0.5, y: 1 },visibility: PortVisibility.Hidden,
+                style: { fill: 'black' } 
+            }
             ];
         return port;
     }
@@ -1839,6 +1871,7 @@ class App extends React.Component {
             connector.targetPortID = targetNode.ports[0].id;
             connector.style = { strokeWidth: 1, strokeColor: '#3498DB' };
         }
+        this.updateOrientation(diagram);
         connector.constraints &= ~ConnectorConstraints.Select;
         return connector;
     };
