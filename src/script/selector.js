@@ -382,20 +382,12 @@ export class PrintSettings {
     }
     set paperSize(paperSize) {
         this.mPaperSize = paperSize;
-        document.getElementById('printCustomSize').style.display = 'none';
-        document.getElementById('printOrientation').style.display = 'none';
-        if (paperSize === 'Custom') {
-            document.getElementById('printCustomSize').style.display = '';
-        }
-        else {
-            document.getElementById('printOrientation').style.display = '';
-        }
     }
 }
 export class PageSettings {
     constructor() {
-        this.pageWidth = 1056;
-        this.pageHeight = 816;
+        this.pageWidth = 1100;
+        this.pageHeight = 900;
         this.backgroundColor = '#ffffff';
         this.isPortrait = false;
         this.isLandscape = true;
@@ -408,6 +400,141 @@ export class ScrollSettings {
         this.currentZoom = '100%';
     }
 }
+
+class MindMapSettings {
+    constructor() {
+        this._levelType = 'Level0';
+        this._fill = 'white';
+        this._stroke = 'white';
+        this._strokeStyle = 'None';
+        this._strokeWidth = 1;
+        this._opacity = undefined;
+        this.opacityText = undefined;
+        this._fontFamily = 'Arial';
+        this._fontSize = undefined;
+        this._fontColor = '#ffffff';
+        this._textOpacity = undefined;
+        this.textOpacityText = undefined;
+        this.propertyChange = null;
+    }
+
+    get levelType() {
+        return this._levelType;
+    }
+
+    set levelType(value) {
+        if (this._levelType !== value) {
+            this._levelType = value;
+            this.triggerPropertyChange('levelType', value);
+        }
+    }
+
+    get fill() {
+        return this._fill;
+    }
+
+    set fill(value) {
+        if (this._fill !== value) {
+            this._fill = value;
+            this.triggerPropertyChange('fill', value);
+        }
+    }
+
+    get stroke() {
+        return this._stroke;
+    }
+
+    set stroke(value) {
+        if (this._stroke !== value) {
+            this._stroke = value;
+            this.triggerPropertyChange('stroke', value);
+        }
+    }
+
+    get strokeStyle() {
+        return this._strokeStyle;
+    }
+
+    set strokeStyle(value) {
+        if (this._strokeStyle !== value) {
+            this._strokeStyle = value;
+            this.triggerPropertyChange('strokeStyle', value);
+        }
+    }
+
+    get strokeWidth() {
+        return this._strokeWidth;
+    }
+
+    set strokeWidth(value) {
+        if (this._strokeWidth !== value) {
+            this._strokeWidth = value;
+            this.triggerPropertyChange('strokeWidth', value);
+        }
+    }
+
+    get opacity() {
+        return this._opacity;
+    }
+
+    set opacity(value) {
+        if (this._opacity !== value) {
+            this._opacity = value;
+            this.triggerPropertyChange('opacity', value);
+        }
+    }
+
+    get fontFamily() {
+        return this._fontFamily;
+    }
+
+    set fontFamily(value) {
+        if (this._fontFamily !== value) {
+            this._fontFamily = value;
+            this.triggerPropertyChange('fontFamily', value);
+        }
+    }
+
+    get fontSize() {
+        return this._fontSize;
+    }
+
+    set fontSize(value) {
+        if (this._fontSize !== value) {
+            this._fontSize = value;
+            this.triggerPropertyChange('fontSize', value);
+        }
+    }
+
+    get fontColor() {
+        return this._fontColor;
+    }
+
+    set fontColor(value) {
+        if (this._fontColor !== value) {
+            this._fontColor = value;
+            this.triggerPropertyChange('fontColor', value);
+        }
+    }
+
+    get textOpacity() {
+        return this._textOpacity;
+    }
+
+    set textOpacity(value) {
+        if (this._textOpacity !== value) {
+            this._textOpacity = value;
+            this.triggerPropertyChange('textOpacity', value);
+        }
+    }
+
+    triggerPropertyChange(propertyName, propertyValue) {
+        if (typeof this.propertyChange === 'function') {
+            this.propertyChange({ propertyName, propertyValue });
+        }
+    }
+}
+
 
 export class OrgDataSettings {
     constructor() {
@@ -440,8 +567,10 @@ export class SelectorViewModel {
         this.printSettings = new PrintSettings();
         this.pageSettings = new PageSettings();
         this.scrollSettings = new ScrollSettings();
+        this.mindmapSettings = new MindMapSettings();
         
     }
   
     
 }
+

@@ -1,7 +1,8 @@
-import { Node, Keys, KeyModifiers,DiagramAction } from '@syncfusion/ej2-diagrams';
-import {hideUserHandle,changeUserHandlePosition,addNode,addSibilingChild,removeSelectedToolbarItem}   from "../App"
+import { Node, Keys, KeyModifiers,DiagramAction, } from '@syncfusion/ej2-diagrams';
+import { DataManager } from "@syncfusion/ej2-data";
+import {hideUserHandle,changeUserHandlePosition,addNode,addSibilingChild,removeSelectedToolbarItem, setMindMapPatternTarget}   from "../App"
 import { UtilityMethods } from './utilitymethods';
-import { workingData } from '../App';
+import { workingData,singleWorkingData, clearWorkingData,getMindMapPatternTarget, setconTypeInPattern, setLevel  } from '../App';
 var templateType = "template1";
 var connectorType = "Bezier";
 var childHeight = 20;
@@ -14,6 +15,12 @@ export class DiagramClientSideEvents {
     selectionChange(arg) {
         const diagram = this.selectedItem.selectedDiagram;
         var textareaObj = document.getElementById("multipleChildText").ej2_instances[0];
+        if (arg.state === 'Changed') {
+            var selectedItems = diagram.selectedItems.nodes;
+            if (selectedItems.length === 1) {
+                  this.singleSelectionSettings(selectedItems[0],arg);
+            }
+        }
         if (arg.state === 'Changing') {
             if (arg.type === "Addition") {
                 if (arg.newValue[0] instanceof Node && arg.newValue[0].addInfo) {
@@ -48,32 +55,103 @@ export class DiagramClientSideEvents {
                 document.getElementById('propertyHeader').innerText = "Properties";
                 textareaObj.value = "";
                 this.onClickDisable(true);
-            }
+            } 
         }
 
+    }
+    singleSelectionSettings(selectedItem) {
+        let object = null;
+        if (selectedItem.type === undefined) {
+            object = selectedItem;
+            this.updatePropertyChange(selectedItem);
+            if (object.addInfo && object.addInfo.level !== undefined) {
+                let levelTypeValue = 'Level' + object.addInfo.level;
+                this.selectedItem.mindmapSettings.levelType = levelTypeValue;
+                setLevel(levelTypeValue);
+                const mindMapLevels = document.getElementById('mindMapLevels').ej2_instances[0];
+                mindMapLevels.inputElement.value = levelTypeValue;
+                if (mindMapLevels.inputElement.value === 'Level0') {
+                    mindMapLevels.inputElement.value = 'Root';
+                }
+
+            }
+        }
+    }
+
+    updatePropertyChange(selectedItem) {
+        if (selectedItem) {
+            const mindMapLevels = document.getElementById('mindMapLevels').ej2_instances[0]
+            const nodeFill = document.getElementById('mindmapFill').ej2_instances[0];
+            const nodeStroke = document.getElementById('mindmapStroke').ej2_instances[0];
+            const mindmapStrokeStyle = document.getElementById('mindmapStrokeStyle').ej2_instances[0];
+            const mindmapStrokeWidth = document.getElementById('mindmapStrokeWidth').ej2_instances[0];
+            const mindmapOpacitySlider = document.getElementById('mindmapOpacitySlider').ej2_instances[0];
+            const mindmapFontFamilyList = document.getElementById('mindmapFontFamilyList').ej2_instances[0];
+            const mindmapFontSize = document.getElementById('mindmapFontSize').ej2_instances[0];
+            const mindmapTextColor = document.getElementById('mindmapTextColor').ej2_instances[0];
+            const mindmapTextOpacitySlider = document.getElementById('mindmapTextOpacitySlider').ej2_instances[0];
+            const toolbarTextStyle =document.getElementById('toolbarTextStyle').ej2_instances[0];
+
+            if (selectedItem.style) {
+                //node
+                nodeFill.value = selectedItem.style.fill;
+                nodeStroke.value = selectedItem.style.strokeColor;
+                mindmapStrokeStyle.value = selectedItem.style.strokeDashArray;
+                mindmapStrokeWidth.value = selectedItem.style.strokeWidth;
+                mindmapOpacitySlider.value = selectedItem.style.opacity * 100;
+                
+            }
+            //text
+            if (selectedItem.annotations && selectedItem.annotations[0] 
+                && selectedItem.annotations[0].content && selectedItem.annotations[0].style) {
+                mindmapFontFamilyList.value = selectedItem.annotations[0].style.fontFamily;
+                mindmapFontSize.value = selectedItem.annotations[0].style.fontSize;
+                mindmapTextColor.value = this.getHexColor(selectedItem.annotations[0].style.color);
+                mindmapTextOpacitySlider.value = selectedItem.annotations[0].style.opacity * 100;
+
+            if (toolbarTextStyle) { 
+                 let annotation = selectedItem.annotations[0].style;
+                toolbarTextStyle.items[0].cssClass = annotation.bold ? 'tb-item-start tb-item-selected' : 'tb-item-start';
+                toolbarTextStyle.items[1].cssClass = annotation.italic ? 'tb-item-middle tb-item-selected' : 'tb-item-middle';
+                toolbarTextStyle.items[2].cssClass = annotation.textDecoration === 'Underline' ? 'tb-item-end tb-item-selected' : 'tb-item-end';
+            }
+            }
+        }
+    }
+
+    // Converts a color string to its hexadecimal representation
+    getHexColor(colorStr) {
+        let a = document.createElement('div');
+        a.style.color = colorStr;
+        let colors = window.getComputedStyle(document.body.appendChild(a)).color.match(/\d+/g).map(
+            (a) => { return parseInt(a, 10); }
+        );
+        document.body.removeChild(a);
+        return (colors.length >= 3) ? '#' + (((1 << 24) + (colors[0] << 16) + (colors[1] << 8) + colors[2]).toString(16).substr(1)) : '';
     }
     //enable and disable of toolbar items
     onClickDisable = function (args, node) {
         var toolbarObj=document.getElementById("toolbarEditor").ej2_instances[0];
         if (args === false) {
+            toolbarObj.items[4].disabled = false;
             toolbarObj.items[6].disabled = false;
-            toolbarObj.items[8].disabled = false;
             if (node.addInfo.level !== 0) {
-                toolbarObj.items[7].disabled = false;
+                toolbarObj.items[5].disabled = false;
             } else {
-                toolbarObj.items[7].disabled = true;
+                toolbarObj.items[5].disabled = true;
             }
         }
         else if (args === true) {
+            toolbarObj.items[4].disabled = true;
+            toolbarObj.items[5].disabled = true;
             toolbarObj.items[6].disabled = true;
-            toolbarObj.items[7].disabled = true;
-            toolbarObj.items[8].disabled = true;
         }
         removeSelectedToolbarItem();
     };
     //created event
-   created(args) {
-    const diagram = this.selectedItem.selectedDiagram;
+    created(args) {
+        const diagram = this.selectedItem.selectedDiagram;
+        this.diagramEvents.maintainExpandState(diagram);
         diagram.fitToPage();
         //define the command manager
         diagram.commandManager = {
@@ -90,7 +168,7 @@ export class DiagramClientSideEvents {
                         var selectedObject = diagram.selectedItems.nodes;
                         if (selectedObject[0]) {
                             if (selectedObject[0].inEdges) {
-                                addNode('Left')
+                                addNode('Right')
                             }
                         }
                     },
@@ -110,7 +188,7 @@ export class DiagramClientSideEvents {
                         var selectedObject = diagram.selectedItems.nodes;
                         if (selectedObject[0]) {
                             if (selectedObject[0].inEdges) {
-                                addNode('Right')
+                                addNode('Left')
                             }
                         }
                     },
@@ -126,11 +204,11 @@ export class DiagramClientSideEvents {
                         return true;
                     },
                     execute: function () {
-                        var btnWindowMenu = document.getElementById("btnWindowMenu").ej2_instances[0];
                         var node1 = document.getElementById('shortcutDiv');
                         node1.style.visibility = node1.style.visibility === "hidden" ? node1.style.visibility = "visible" : node1.style.visibility = "hidden";
-                        btnWindowMenu.items[2].iconCss = node1.style.visibility === "hidden" ? '' : 'sf-icon-check-tick';
-                        diagram.dataBind();
+                        if (document.getElementById('diagram-menu') && document.getElementById('diagram-menu').ej2_instances[0]) {
+                            document.getElementById('diagram-menu').ej2_instances[0].items[3].items[2].iconCss = document.getElementById('diagram-menu').ej2_instances[0].items[3].items[2].iconCss ? '' : 'sf-icon-check-tick';
+                        }
                     },
                     gesture: {
                         key: Keys.F1,
@@ -144,7 +222,7 @@ export class DiagramClientSideEvents {
                         return true;
                     },
                     execute: function () {
-                        diagram.fitToPage({ mode: 'Width' });
+                        diagram.fitToPage({ mode: 'Page' });
                     },
                     gesture: {
                         key: Keys.F8,
@@ -215,7 +293,7 @@ export class DiagramClientSideEvents {
                     },
                     execute: function () {
                         if (diagram.selectedItems.nodes.length > 0 && diagram.selectedItems.nodes[0].data.branch !== 'Root') {
-                        UtilityMethods.prototype.removeChild();
+                            UtilityMethods.prototype.removeChild();
                         }
                     },
                     gesture: {
@@ -296,7 +374,8 @@ export class DiagramClientSideEvents {
                         return true;
                     },
                     execute: function () {
-                        UtilityMethods.prototype.download(diagram.saveDiagram());
+                        diagram.mindMapPatternTarget = getMindMapPatternTarget();
+                        UtilityMethods.prototype.download(diagram.saveDiagram(), (document.getElementById('diagramName')).innerHTML);
                     },
                     gesture: {
                         key: Keys.S,
@@ -334,7 +413,7 @@ export class DiagramClientSideEvents {
                         return true;
                     },
                     execute: function () {
-                        UtilityMethods.prototype.navigateChild('up');
+                        UtilityMethods.prototype.navigateChild('top');
                     },
                     gesture: {
                         key: Keys.Up
@@ -364,8 +443,104 @@ export class DiagramClientSideEvents {
                         key: Keys.Right
                     }
                 },
+                {
+                    //Preventing default cut command
+                    name: 'cut',
+                    canExecute: function () {
+                        return false;
+                    },
+                    execute: null,
+                    gesture: {
+                        key: ej.diagrams.Keys.X,
+                        keyModifiers: ej.diagrams.KeyModifiers.Control,
+                    },
+                },
+                {
+                    //Preventing default copy command
+                    name: 'copy',
+                    canExecute: function () {
+                        return false;
+                    },
+                    execute: null,
+                    gesture: {
+                        key: ej.diagrams.Keys.C,
+                        keyModifiers: ej.diagrams.KeyModifiers.Control,
+                    },
+                },
+                {
+                    //Preventing default paste command
+                    name: 'paste',
+                    canExecute: function () {
+                        return false;
+                    },
+                    execute: null,
+                    gesture: {
+                        key: ej.diagrams.Keys.V,
+                        keyModifiers: ej.diagrams.KeyModifiers.Control,
+                    },
+                },
+                {
+                    //Preventing default undo command
+                    name: 'undo',
+                    canExecute: function () {
+                        return false;
+                    },
+                    execute: null,
+                    gesture: {
+                        key: ej.diagrams.Keys.Z,
+                        keyModifiers: ej.diagrams.KeyModifiers.Control,
+                    },
+                },
+                {
+                    //Preventing default redo command
+                    name: 'redo',
+                    canExecute: function () {
+                        return false;
+                    },
+                    execute: null,
+                    gesture: {
+                        key: ej.diagrams.Keys.Y,
+                        keyModifiers: ej.diagrams.KeyModifiers.Control,
+                    },
+                },
+                {
+                    //Preventing Duplicate command
+                    name: 'Duplicate',
+                    canExecute: function () {
+                        return false;
+                    },
+                    execute: null,
+                    gesture: {
+                        key: ej.diagrams.Keys.D,
+                        keyModifiers: ej.diagrams.KeyModifiers.Control,
+                    },
+                },
+                {
+                    name: 'new',
+                    canExecute: function () {
+                        return true;
+                    },
+                    execute: function () {
+                        diagram.clear();
+                        clearWorkingData();
+                        singleWorkingData();
+                        diagram.dataSourceSettings.dataSource = new DataManager([workingData[0]]);
+                        diagram.dataBind();
+                        diagram.nodes[0].expandIcon.shape = document.getElementById('expandCheckbox').checked ? 'Minus' : 'None';
+                        diagram.nodes[0].collapseIcon.shape = document.getElementById('expandCheckbox').checked ? 'Plus' : 'None';
+                        let pattern = document.getElementsByClassName('mindmap-pattern-style mindmap-pattern1');
+                        setMindMapPatternTarget(pattern[0]);
+                        diagram.fitToPage();
+                    },
+                    gesture: { key: Keys.N, keyModifiers: KeyModifiers.Shift },
+                },
             ]
         };
+        diagram.nodes.forEach(node => {
+            if (node.data.branch === 'Root') {
+                node.shape.shape = 'Ellipse'
+            }
+        });
         diagram.dataBind();
     };
     //keydown event
@@ -378,9 +553,10 @@ export class DiagramClientSideEvents {
     //textedit event
     textEdit(args){
         setTimeout(() => {
-            if (args.annotation) {
+            if (args.annotation && args.element) {
                 var tempData = workingData.filter((a) => a.id === args.element.data.id);
                 tempData[0].Label = args.annotation.content;
+                args.element.data.Label = args.annotation.content;
             }
         }, 0);
     }
@@ -473,26 +649,20 @@ export class DiagramClientSideEvents {
         obj.width = 100;
         obj.height *= ratio;
     }
-    //history change event
-    historyChange(args) {
-        var diagram = document.getElementById("diagram").ej2_instances[0];
-        var toolbarEditor = document.getElementById('toolbarEditor').ej2_instances[0];;
-        diagram.historyManager.undoStack.length > 0 ? toolbarEditor.items[0].disabled = false : toolbarEditor.items[0].disabled = true
-        diagram.historyManager.redoStack.length > 0 ? toolbarEditor.items[1].disabled = false : toolbarEditor.items[1].disabled = true
-       
-    }
+    
     //To change the pattern of mindmap
-    mindmapPatternChange(args) {
-        var target = args.target;
+    mindmapPatternChange(args, conType) {
+        var target = args.target || args;
         var diagram= document.getElementById('diagram').ej2_instances[0];
-        var mindMapPatternTarget = args;
+        setMindMapPatternTarget(args);
         diagram.historyManager.startGroupAction();
         for (var i = 0; i < diagram.nodes.length; i++) {
             var node = diagram.nodes[i];
+            const targetData = workingData.find(item => item.id === node.data.id);
             if (node.id !== 'textNode') {
                 if (target.className === 'mindmap-pattern-style mindmap-pattern1') {
                     if (node.data.branch === 'Root') {
-                        node.height = 70;
+                        node.height = 75;
                         node.shape = { type: 'Basic', shape: 'Ellipse' };
                     }
                     else {
@@ -502,7 +672,7 @@ export class DiagramClientSideEvents {
                     }
                 } else if (target.className === 'mindmap-pattern-style mindmap-pattern2') {
                     if (node.data.branch === 'Root') {
-                        node.height = 50;
+                        node.height = 75;
                         node.shape = { type: 'Basic', shape: 'Rectangle' };
                     }
                     else {
@@ -512,7 +682,7 @@ export class DiagramClientSideEvents {
                     }
                 } else if (target.className === 'mindmap-pattern-style mindmap-pattern3') {
                     if (node.data.branch === 'Root') {
-                        node.height = 50;
+                        node.height = 75;
                         node.shape = { type: 'Path', data: 'M55.7315 17.239C57.8719 21.76 54.6613 27.788 47.1698 26.0787C46.0997 32.309 33.2572 35.323 28.9764 29.2951C25.7658 35.323 10.7829 33.816 10.7829 26.0787C3.29143 30.802 -0.989391 20.253 2.22121 17.239C-0.989317 14.2249 2.22121 6.68993 10.7829 8.39934C13.9935 -0.845086 25.7658 -0.845086 28.9764 5.18301C32.187 0.661909 45.0294 0.661908 47.1698 8.39934C52.5209 5.18301 60.0123 12.7179 55.7315 17.239Z' };
                     } else if (node.addInfo.level === 1) {
                         node.height = 30;
@@ -532,7 +702,7 @@ export class DiagramClientSideEvents {
                     }
                 } else {
                     if (node.data.branch === 'Root') {
-                        node.height = 50;
+                        node.height = 75;
                         node.shape = { type: 'Path', data: 'M28 1.60745L32.6757 7.49196L33.1063 8.03386L33.7651 7.82174L43.5571 4.66902L41.3666 9.9757L40.8265 11.2839L42.24 11.356L52.0141 11.8539L45.233 15.0979L43.3473 16L45.233 16.9021L52.0141 20.1461L42.24 20.644L40.8265 20.716L41.3666 22.0243L43.5571 27.331L33.7651 24.1783L33.1063 23.9661L32.6757 24.508L28 30.3926L23.3243 24.508L22.8937 23.9661L22.2349 24.1783L12.4429 27.331L14.6334 22.0243L15.1734 20.7161L13.7599 20.644L3.98585 20.1461L10.767 16.9021L12.6527 16L10.767 15.0979L3.98585 11.8539L13.7599 11.356L15.1734 11.2839L14.6334 9.9757L12.4429 4.66902L22.2349 7.82174L22.8937 8.03386L23.3243 7.49196L28 1.60745Z' };
                     } else if (node.addInfo.level === 1) {
                         node.height = 30;
@@ -552,37 +722,120 @@ export class DiagramClientSideEvents {
                     }
                 }
             }
+            targetData.nodeShapeType = node.shape.type;
+            targetData.nodeHeight = node.height;
+            if (targetData.nodeShapeType === 'Basic') {
+                targetData.nodeShape =  node.shape.shape;
+                targetData.nodeShapeData =  '';
+            }
+            else {
+                targetData.nodeShapeData =  node.shape.data;
+                targetData.nodeShape = '';
+            }
             diagram.dataBind();
         }
         for (var i = 0; i < diagram.connectors.length; i++) {
             var connector = diagram.connectors[i];
             // eslint-disable-next-line default-case
-            switch (target.className) {
-                case 'mindmap-pattern-style mindmap-pattern1':
-                    connector.type = 'Bezier';
-                    connectorType = 'Bezier';
-                    templateType = 'template1';
-                    break;
-                case 'mindmap-pattern-style mindmap-pattern2':
-                    connector.type = 'Orthogonal';
-                    connectorType = 'Orthogonal';
-                    templateType = 'template4';
-                    break;
-                case 'mindmap-pattern-style mindmap-pattern3':
-                    connector.type = 'Bezier';
-                    connectorType = 'Bezier';
-                    templateType = 'template2';
-                    break;
-                case 'mindmap-pattern-style mindmap-pattern4':
-                    connector.type = 'Bezier';
-                    connectorType = 'Bezier';
-                    templateType = 'template3';
-                    break;
+            if (!conType) {
+                switch (target.className) {
+                    case 'mindmap-pattern-style mindmap-pattern1':
+                        connector.type = 'Bezier';
+                        connectorType = 'Bezier';
+                        templateType = 'template1';
+                        setconTypeInPattern('Bezier');
+                        break;
+                    case 'mindmap-pattern-style mindmap-pattern2':
+                        connector.type = 'Orthogonal';
+                        connectorType = 'Orthogonal';
+                        templateType = 'template4';
+                        setconTypeInPattern('Orthogonal');
+                        break;
+                    case 'mindmap-pattern-style mindmap-pattern3':
+                        connector.type = 'Bezier';
+                        connectorType = 'Bezier';
+                        templateType = 'template2';
+                        setconTypeInPattern('Bezier');
+                        break;
+                    case 'mindmap-pattern-style mindmap-pattern4':
+                        connector.type = 'Bezier';
+                        connectorType = 'Bezier';
+                        templateType = 'template3';
+                        setconTypeInPattern('Bezier');
+                        break;
+                }
+            } else {
+                connector.type = conType;
+                connectorType = conType;
             }
             diagram.dataBind();
         }
         diagram.historyManager.endGroupAction();
         diagram.doLayout();
+    }
+    expandStateChange(args) {
+        var node = args.element;
+        if (node && node.isExpanded !== undefined) {
+            const targetData = workingData.find(item => item.id === node.data.id);
+            if(targetData){
+                targetData.isExpanded = node.isExpanded;
+            }
+            // If the node is collapsed, recursively collapse all child nodes
+            if (!node.isExpanded && targetData) {
+                this.diagramEvents.collapseChildNodes(targetData.id);
+            }
+        }
+    }
+    collapseChildNodes(parentId) {
+        // Find all child nodes of the given parentId
+        const childNodes = workingData.filter(item => item.parentId === parentId);
+        childNodes.forEach(child => {
+            // Set isExpanded to false for each child node
+            child.isExpanded = false;
+            // Recursively collapse their children as well
+            this.collapseChildNodes(child.id);
+        });
+    }
+    maintainExpandState(diagram) {
+        var nodes = diagram.nodes;
+        var collapsedParents = new Set();
+
+        // Function to find the highest parent that is collapsed
+        function getHighestCollapsedParent(nodeId) {
+            let currentNode = workingData.find(item => item.id === nodeId);
+
+            // Traverse up the hierarchy
+            while (currentNode && currentNode.parentId) {
+                const parent = workingData.find(item => item.id === currentNode.parentId);
+
+                if (parent && parent.isExpanded === false) {
+                    currentNode = parent;
+                } else {
+                    break;
+                }
+            }
+            return currentNode;
+        }
+
+        // Step 1: Collect all highest-level collapsed parents
+        workingData.forEach(item => {
+            if (item.isExpanded === false) {
+                const highestParent = getHighestCollapsedParent(item.id);
+
+                // Store only the highest-level parent
+                if (highestParent && !collapsedParents.has(highestParent.id)) {
+                    collapsedParents.add(highestParent.id);
+                }
+            }
+        });
+
+        // Step 2: Update nodes in the diagram based on the highest collapsed parents
+        nodes.forEach(node => {
+            if (collapsedParents.has(node.data.id)) {
+                node.isExpanded = false;
+                diagram.dataBind();
+            }
+        });
     }
 }
 

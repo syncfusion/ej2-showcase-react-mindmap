@@ -1,5 +1,6 @@
 export class DropDownDataSources {
     constructor() {
+        this.newMenuItems = this.getNewMenuItems();
         this.fileMenuItems = this.getFileMenuItems();
         this.editMenuItems = this.getEditMenuItems();
         this.viewMenuItems = this.getViewMenuItems();
@@ -46,13 +47,14 @@ export class DropDownDataSources {
             { text: 'Root', value: 'Level0' }, { text: 'Level1', value: 'Level1' },
             { text: 'Level2', value: 'Level2' }, { text: 'Level3', value: 'Level3' },
             { text: 'Level4', value: 'Level4' }, { text: 'Level5', value: 'Level5' },
+            { text: 'Selected Item', value: 'Selected Item' }
         ];
     //To specify the mindmap shapes items
-      this.mindmapShapeDatasource=[
-                { text: 'Rectangle', value: 'Rectangle' }, { text: 'Ellipse', value: 'Ellipse' },
-                { text: 'Star', value: 'Star' }, { text: 'Cloud', value: 'Cloud' },
-                { text: 'Free hand', value: 'Free hand' }, { text: 'Line', value: 'Line' },
-            ];
+        this.mindmapShapeDatasource = [
+            { text: 'Ellipse', value: 'Ellipse' }, { text: 'Rectangle', value: 'Rectangle' },
+            { text: 'Star', value: 'Star' }, { text: 'Cloud', value: 'Cloud' },
+            { text: 'Free hand', value: 'Free hand' }, { text: 'Line', value: 'Line' },
+        ];
         //To specify the zoom items
         this.zoomMenuItems = [
             { text: 'Zoom In' },{ text: 'Zoom Out' },{ text: 'Zoom to Fit' },{ text: 'Zoom to 50%' },
@@ -66,6 +68,45 @@ export class DropDownDataSources {
         ];
     }
     // define the File Menu Items
+    getNewMenuItems() {
+        const menuItems = [
+            {
+                text: 'File',
+                items: [
+                    { text: 'New', iconCss: 'sf-icon-new' },
+                    { text: 'Open', iconCss: 'sf-icon-open' }, { separator: true },
+                    { text: 'Save', iconCss: 'sf-icon-save' },
+                    { text: 'Export', iconCss: 'sf-icon-export' }, { separator: true },
+                    { text: 'Print', iconCss: 'sf-icon-print' }]
+            },
+            {
+                text: 'Edit',
+                items: [
+                    { text: 'Delete', iconCss: 'sf-icon-delete' },
+                    { separator: true },
+                    { text: 'Select All', iconCss: 'sf-icon-select-all' },
+                ]
+            },
+            {
+                text: 'View',
+                items: [
+                    { text: 'Zoom In', iconCss: 'sf-icon-zoom-in' }, { text: 'Zoom Out', iconCss: 'sf-icon-zoom-out' }, { separator: true },
+                    { text: 'Fit To Screen' }, { separator: true },
+                    { text: 'Show Rulers', iconCss: 'sf-icon-check-tick' },
+                    { text: 'Show Lines' },
+                ]
+            },
+            {
+                text: 'Window',
+                items: [
+                    { text: 'Show Toolbar', iconCss: 'sf-icon-check-tick' },
+                    { text: 'Show Properties', iconCss: 'sf-icon-check-tick' },
+                    { text: 'Show Shortcuts', iconCss: 'sf-icon-check-tick' },
+                ]
+            }
+        ];
+        return menuItems;
+    }
     getFileMenuItems() {
         const menuItems = [
             { text: 'New', iconCss: 'sf-icon-new' },
@@ -81,8 +122,6 @@ export class DropDownDataSources {
     // define the Edit Menu Items
     getEditMenuItems() {
         const menuItems = [
-            { text: 'Undo', iconCss: 'sf-icon-undo' },
-            { text: 'Redo', iconCss: 'sf-icon-redo' },
             { separator: true },
             { text: 'Cut', iconCss: 'sf-icon-cut' },
             { text: 'Copy', iconCss: 'sf-icon-copy' },

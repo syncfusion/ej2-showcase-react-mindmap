@@ -1,7 +1,4 @@
-import { getColor } from "../App";
-//var levelType = "Level0";
-import { levelType } from "../App";
-import { getConnector } from "../App";
+import { getColor,levelType,getConnector,workingData } from "../App";
 export class PropertyChange {
     constructor() {
        
@@ -17,12 +14,19 @@ export class PropertyChange {
                 if (node.addInfo) {
                     var addInfo = node.addInfo;
                     if ('Level' + addInfo.level === levelType || addInfo.level === levelType || levelType === "Selected Item") {
+                        const targetData = workingData.find(item => item.id === node.data.id);
                         switch (args.propertyName.toString().toLowerCase()) {
                             case 'fill':
                                 node.style.fill = getColor(args.propertyValue.value);
+                                node.data.fill = node.style.fill;
+                                targetData.fill = node.style.fill;
                                 break;
                             case 'stroke':
                                 node.style.strokeColor = getColor(args.propertyValue.value);
+                                node.data.strokeColor = node.style.strokeColor;
+                                if (targetData) {
+                                    targetData.strokeColor = node.style.strokeColor;
+                                }
                                 if (node.inEdges.length > 0) {
                                     var connector = getConnector(diagram.connectors, node.inEdges[0]);
                                     connector.style.strokeColor = node.style.strokeColor;
@@ -30,6 +34,10 @@ export class PropertyChange {
                                 break;
                             case 'strokewidth':
                                 node.style.strokeWidth = args.propertyValue.value;
+                                node.data.strokeWidth = node.style.strokeWidth;
+                                if (targetData) {
+                                    targetData.strokeWidth = node.style.strokeWidth;
+                                }
                                 if (node.inEdges.length > 0) {
                                     var connector =getConnector(diagram.connectors, node.inEdges[0]);
                                     connector.style.strokeWidth = args.propertyValue.value;
@@ -37,6 +45,10 @@ export class PropertyChange {
                                 break;
                             case 'strokestyle':
                                 node.style.strokeDashArray = args.propertyValue.value;
+                                node.data.strokeStyle = node.style.strokeDashArray;
+                                if (targetData) {
+                                    targetData.strokeStyle = node.style.strokeDashArray;
+                                }
                                 if (node.inEdges.length > 0) {
                                     var connector2 = getConnector(diagram.connectors, node.inEdges[0]);
                                     connector2.style.strokeDashArray = args.propertyValue.value;
@@ -44,13 +56,17 @@ export class PropertyChange {
                                 break;
                             case 'opacity':
                                 node.style.opacity = args.propertyValue.value / 100;
+                                node.data.shapeOpacity = node.style.opacity;
+                                if (targetData) {
+                                    targetData.shapeOpacity = node.style.opacity;
+                                }
                                 document.getElementById("mindmapOpacityText").value = args.propertyValue.value + '%';
                                 break;
                             case 'shape':
-                                this.drawShapeChange(node, args);
+                                this.drawShapeChange(node, args, targetData);
                                 break;
                             default:
-                                this.updateMindMapTextStyle(node, args.propertyName.toString().toLowerCase(),args);
+                                this.updateMindMapTextStyle(node, args.propertyName.toString().toLowerCase(),args, targetData);
                                 break;
                         }
                     }
@@ -60,7 +76,8 @@ export class PropertyChange {
         
         }
     }
-    drawShapeChange(node, args) {
+    drawShapeChange(node, args, targetData) {
+        node.height = 75;
         var diagram=document.getElementById("diagram").ej2_instances[0];
         var nodeShape = args.propertyValue.value;
         if (nodeShape === 'Rectangle') {
@@ -78,9 +95,23 @@ export class PropertyChange {
             node.height = 4;
         }
         diagram.dataBind();
+        targetData.nodeShapeType = node.shape.type;
+        node.data.nodeShapeType = node.shape.type;
+        targetData.nodeHeight = node.height;
+        node.data.nodeHeight = node.height;
+        if (targetData.nodeShapeType === 'Basic') {
+            targetData.nodeShape = node.shape.shape;
+            targetData.nodeShapeData = '';
+        }
+        else {
+            targetData.nodeShapeData = node.shape.data;
+            targetData.nodeShape = '';
+            node.data.nodeShapeData = node.shape.data;
+        }
+        diagram.doLayout();
     }
-    updateMindMapTextStyle(node, propertyName,args) {
-        var diagram=document.getElementById("diagram").ej2_instances[0];
+    updateMindMapTextStyle(node, propertyName, args, targetData) {
+        var diagram = document.getElementById("diagram").ej2_instances[0];
         var textOpacity = args.propertyValue.value;
         if (node.addInfo && node.annotations.length > 0) {
             var annotation = node.annotations[0].style;
@@ -88,47 +119,61 @@ export class PropertyChange {
             switch (propertyName) {
                 case 'fontfamily':
                     annotation.fontFamily = args.propertyValue.value;
+                    node.data.fontFamily = annotation.fontFamily;
                     break;
                 case 'fontsize':
                     annotation.fontSize = args.propertyValue.value;
+                    node.data.fontSize = annotation.fontSize;
                     break;
                 case 'fontcolor':
                     annotation.color = getColor(args.propertyValue.value);
+                    node.data.color = annotation.color;
                     break;
                 case 'textopacity':
                     annotation.opacity = textOpacity / 100;
+                    node.data.opacity = annotation.opacity;
                     document.getElementById("textOpacityText").value = textOpacity + '%';
                     break;
                 case 'bold':
                     annotation.bold = !annotation.bold;
+                    node.data.bold = annotation.bold;
                     this.updateToolbarState('toolbarTextStyle', annotation.bold, 0);
                     break;
                 case 'italic':
                     annotation.italic = !annotation.italic;
+                    node.data.italic = annotation.italic;
                     this.updateToolbarState('toolbarTextStyle', annotation.italic, 1);
                     break;
                 case 'underline':
                     annotation.textDecoration = annotation.textDecoration === 'None' || !annotation.textDecoration ? 'Underline' : 'None';
+                     node.data.textDecoration = annotation.textDecoration;
                     this.updateToolbarState('toolbarTextStyle', annotation.textDecoration, 2);
                     break;
             }
+            targetData.fontFamily = annotation.fontFamily;
+            targetData.fontSize = annotation.fontSize;
+            targetData.fontColor = annotation.color;
+            targetData.textOpacity = annotation.opacity;
+            targetData.bold = annotation.bold;
+            targetData.italic = annotation.italic;
+            targetData.textDecoration = annotation.textDecoration;
+            targetData.nodeHeight = node.height;
         }
         diagram.dataBind();
     }
-     updateToolbarState(toolbarName, isSelected, index)
-    {
-       var toolbarTextStyle = document.getElementById(toolbarName);
-       if (toolbarTextStyle) {
-           toolbarTextStyle = toolbarTextStyle.ej2_instances[0];
-       }
-       if (toolbarTextStyle) {
-           var cssClass = toolbarTextStyle.items[index].cssClass;
-           if(isSelected==="None"){
-            isSelected=false;
-           }
-           toolbarTextStyle.items[index].cssClass = isSelected ? cssClass + ' tb-item-selected' : cssClass.replace(' tb-item-selected', '');
-           toolbarTextStyle.dataBind();
-       }
-     };
+    updateToolbarState(toolbarName, isSelected, index) {
+        var toolbarTextStyle = document.getElementById(toolbarName);
+        if (toolbarTextStyle) {
+            toolbarTextStyle = toolbarTextStyle.ej2_instances[0];
+        }
+        if (toolbarTextStyle) {
+            var cssClass = toolbarTextStyle.items[index].cssClass;
+            if (isSelected === "None") {
+                isSelected = false;
+            }
+            toolbarTextStyle.items[index].cssClass = isSelected ? cssClass + ' tb-item-selected' : cssClass.replace(' tb-item-selected', '');
+            toolbarTextStyle.dataBind();
+        }
+    };
    
 }

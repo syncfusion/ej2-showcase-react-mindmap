@@ -1,10 +1,10 @@
-import { createElement, closest,formatUnit } from "@syncfusion/ej2-base";
-import { DiagramComponent, randomId,SelectorConstraints,MindMap,  ToolBase, DiagramAction, DiagramTools, NodeConstraints, ConnectorConstraints, UndoRedo, DiagramContextMenu, Snapping, DataBinding, PrintAndExport, ConnectorBridging, LayoutAnimation } from "@syncfusion/ej2-react-diagrams";
-import { Diagram,SnapConstraints} from "@syncfusion/ej2-react-diagrams";
+import { createElement, closest, formatUnit } from "@syncfusion/ej2-base";
+import { DiagramComponent, randomId, SelectorConstraints, MindMap, Keys, KeyModifiers, ToolBase, DiagramAction, DiagramTools, NodeConstraints, ConnectorConstraints, UndoRedo, DiagramContextMenu, Snapping, DataBinding, PrintAndExport, ConnectorBridging, LayoutAnimation } from "@syncfusion/ej2-react-diagrams";
+import { Diagram, SnapConstraints } from "@syncfusion/ej2-react-diagrams";
 import { DropDownButtonComponent } from "@syncfusion/ej2-react-splitbuttons";
 import { DiagramClientSideEvents } from "./script/events";
 import { DialogComponent } from "@syncfusion/ej2-react-popups";
-import { ToolbarComponent, ItemsDirective, ItemDirective, ContextMenuComponent ,TreeViewComponent } from '@syncfusion/ej2-react-navigations';
+import { ToolbarComponent, ItemsDirective, ItemDirective, ContextMenuComponent, TreeViewComponent, MenuComponent } from '@syncfusion/ej2-react-navigations';
 import * as React from 'react';
 import { Uploader } from '@syncfusion/ej2-react-inputs';
 import { RadioButtonComponent, ButtonComponent, CheckBoxComponent } from "@syncfusion/ej2-react-buttons";
@@ -15,13 +15,63 @@ import { UtilityMethods } from "./script/utilitymethods";
 import { PropertyChange } from "./script/properties";
 import { DataManager, Query } from "@syncfusion/ej2-data";
 import { PortVisibility } from '@syncfusion/ej2-diagrams';
-import { NumericTextBoxComponent,TextBoxComponent, ColorPickerComponent,SliderComponent } from "@syncfusion/ej2-react-inputs";
-Diagram.Inject(UndoRedo, DiagramContextMenu, Snapping, DataBinding, PrintAndExport,MindMap, ConnectorBridging, LayoutAnimation);
+import { NumericTextBoxComponent, TextBoxComponent, ColorPickerComponent, SliderComponent } from "@syncfusion/ej2-react-inputs";
+Diagram.Inject(UndoRedo, DiagramContextMenu, Snapping, DataBinding, PrintAndExport, MindMap, ConnectorBridging, LayoutAnimation);
 
+export let mindMapPatternTarget = null;
+
+export function setMindMapPatternTarget(value) {
+    mindMapPatternTarget = value;
+}
+
+export function getMindMapPatternTarget() {
+    return mindMapPatternTarget;
+}
+export let conTypeInPattern = 'Bezier';
+export function setconTypeInPattern(value) {
+  conTypeInPattern = value;
+}
+
+export function getconTypeInPattern() {
+  return conTypeInPattern;
+}
+
+export let levelType = "Level0";
+export function setLevel(value) {
+  levelType = value;
+}
 export let workingData = [
-    { id: '1', Label: 'Creativity',  branch: 'Root', hasChild: true, level: 0, fill: "#D0ECFF", strokeColor: "#80BFEA", orientation: 'Root' },
+    {
+        id: '1', Label: 'Root', branch: 'Root', hasChild: false, level: 0, fill: "#D0ECFF", strokeColor: "#80BFEA", orientation: 'Root',
+        nodeShapeType: 'Basic', nodeShape: 'Ellipse', nodeShapeData: '', nodeHeight: 75
+    }
 ];
-const fields = { dataSource: workingData, id: 'id', text: 'Label',parentID: 'parentId',hasChildren: 'hasChild' };
+
+export let currectView = 'DiagramView';
+
+export function setcurrentView(value) {
+    currectView = value;
+}
+
+export function getcurrentView() {
+    return currectView;
+}
+
+export function singleWorkingData() {
+    workingData = [{
+        id: '1', Label: 'Root', branch: 'Root', hasChild: false, level: 0, fill: "#D0ECFF", strokeColor: "#80BFEA", orientation: 'Root',
+        nodeShapeType: 'Basic', nodeShape: 'Ellipse', nodeShapeData: '', nodeHeight: 75
+    }
+    ]
+}
+export function clearWorkingData() {
+    workingData = [];
+}
+
+
+
+
+const fields = { dataSource: workingData, id: 'id', text: 'Label', parentID: 'parentId', hasChildren: 'hasChild' };
 var items = new DataManager(workingData, new Query().take(7));
 export class PaperSize {
 }
@@ -30,7 +80,6 @@ export let connectorType = "Bezier";
 export let index = 1;
 export let isExpanded = false;
 export let childHeight = 20;
-export let  mindMapPatternTarget;
 export let diagramName;
 export let beforItem;
 export let loadDiagram;
@@ -40,6 +89,7 @@ export let editContextMenuOpen;
 export let beforeClose;
 export let menuClick;
 export let editTool;
+export let toolbarCreated;
 export let hideToolbar;
 export let zoomTemplate;
 export let diagramView;
@@ -50,18 +100,18 @@ export let textViewChange;
 export let enableMenuItems;
 export let dropElement;
 export let footTemplate;
-export let printTemplateChange;
-export let getNode; 
+export let getNode;
 export let addNode;
+export let addSibilingChild;
+export let updateConnectorType;
 export let setUserHandle;
 export let getConnector;
 export let getMindMapShape;
 export let setConnectorDefault;
-export let  isToolbarClicked = false;
-export let  levelType = "Level0";
+export let isToolbarClicked = false;
 export let nodeShape;
 export let htmlAttributes = { rows: '20' };
-export let templateType = "template1";  
+export let templateType = "template1";
 var fillColorCode = ['#C4F2E8', '#F7E0B3', '#E5FEE4', '#E9D4F1', '#D4EFED', '#DEE2FF'];
 var borderColorCode = ['#8BC1B7', '#E2C180', '#ACCBAA', '#D1AFDF', '#90C8C2', '#BBBFD6'];
 var lastFillIndex = 0;
@@ -69,7 +119,7 @@ var leftArrow = 'M11.924,6.202 L4.633,6.202 L4.633,9.266 L0,4.633 L4.632,0 L4.63
 var rightArrow = 'M0,3.063 L7.292,3.063 L7.292,0 L11.924,4.633 L7.292,9.266 L7.292,5.714 L0.001,5.714 L0.001,3.063Z';
 var deleteIcon = 'M 7.04 22.13 L 92.95 22.13 L 92.95 88.8 C 92.95 91.92 91.55 94.58 88.76' +
     '96.74 C 85.97 98.91 82.55 100 78.52 100 L 21.48 100 C 17.45 100 14.03 98.91 11.24 96.74 C 8.45 94.58 7.04' +
-   '91.92 7.04 88.8 z M 32.22 0 L 67.78 0 L 75.17 5.47 L 100 5.47 L 100 16.67 L 0 16.67 L 0 5.47 L 24.83 5.47 z';
+    '91.92 7.04 88.8 z M 32.22 0 L 67.78 0 L 75.17 5.47 L 100 5.47 L 100 16.67 L 0 16.67 L 0 5.47 L 24.83 5.47 z';
 
 //To hide userhandle when elements not selected in the diagram
 export function hideUserHandle(name) {
@@ -82,17 +132,26 @@ export function hideUserHandle(name) {
     }
 }
 //To remove the selected toolbar item
-export function removeSelectedToolbarItem ()
-{
-    var toolbarObj=document.getElementById("toolbarEditor").ej2_instances[0];
-    for (var i = 0; i < toolbarObj.items.length; i++) {
-        var item = toolbarObj.items[i];
-        if (item.cssClass.indexOf('tb-item-selected') !== -1) {
-            item.cssClass = item.cssClass.replace(' tb-item-selected', '');
+export function removeSelectedToolbarItem() {
+    var toolbarObj = document.getElementById("toolbarEditor").ej2_instances[0];
+    var diagram = document.getElementById("diagram");
+    if (diagram && diagram.ej2_instances && toolbarObj) {
+        for (var i = 0; i < toolbarObj.items.length; i++) {
+            var item = toolbarObj.items[i];
+            var skip = false;
+            if ((item.tooltipText == "Select Tool" && diagram.ej2_instances[0].tool == DiagramTools.Default)
+                || (item.tooltipText == "Pan Tool" && diagram.ej2_instances[0].tool == DiagramTools.ZoomPan)
+
+            ) {
+                skip = true;
+            }
+            if (item.cssClass.indexOf('tb-item-selected') !== -1 && !skip) {
+                item.cssClass = item.cssClass.replace(' tb-item-selected', '');
+            }
         }
     }
     toolbarObj.dataBind();
-   
+
 };
 //To get the color value for diagram node or connector fill or stroke properties
 export function getColor(colorName) {
@@ -103,16 +162,16 @@ export function getColor(colorName) {
 };
 //Change the Position of the UserHandle.
 export function changeUserHandlePosition(change) {
-var diagram = document.getElementById("diagram").ej2_instances[0]
-for (var i = 0; i < diagram.selectedItems.userHandles.length; i++) {
-    var handle = diagram.selectedItems.userHandles[i];
-    if (handle.name === 'devare' && change === 'leftHandle') {
-        applyHandle(handle, 'Left', 1, { top: 0, bottom: 0, left: 0, right: 10 }, 'Left', 'Top');
+    var diagram = document.getElementById("diagram").ej2_instances[0]
+    for (var i = 0; i < diagram.selectedItems.userHandles.length; i++) {
+        var handle = diagram.selectedItems.userHandles[i];
+        if (handle.name === 'devare' && change === 'leftHandle') {
+            applyHandle(handle, 'Left', 1, { top: 0, bottom: 0, left: 0, right: 10 }, 'Left', 'Top');
 
-    } else if (handle.name === 'devare' && change === 'rightHandle') {
-        applyHandle(handle, 'Right', 1, { top: 0, bottom: 0, left: 10, right: 0 }, 'Right', 'Top');
+        } else if (handle.name === 'devare' && change === 'rightHandle') {
+            applyHandle(handle, 'Right', 1, { top: 0, bottom: 0, left: 10, right: 0 }, 'Right', 'Top');
+        }
     }
-}
 }
 //render the nodes in treeview
 export function addTreeNode() {
@@ -142,7 +201,7 @@ export function addTreeNode() {
     workingData.push(item);
     treeObj.beginEdit(nodeId);
 }
-//To get the orientation of the node 
+//To get the orientation of the node
 export function getTreeOrientation(tempData) {
     var leftChildCount = 0;
     var rightChildCount = 0;
@@ -202,62 +261,10 @@ export function addMultipleChild() {
     document.getElementById('propertyHeader').innerText = "Add Multiple Child";
 }
 
-//To add sibling child to the child node
-export function addSibilingChild(){
-    var diagram = document.getElementById("diagram").ej2_instances[0];
-    var selectedNode = diagram.selectedItems.nodes[0];
-if (selectedNode.data.branch !== 'Root') {
-    var selectedNodeOrientation = selectedNode.addInfo.orientation.toString();
-    var orientation_3 = selectedNodeOrientation;
-    var connectors = getConnector(diagram.connectors, selectedNode.inEdges[0]);
-    diagram.startGroupAction();
-    var mindmapData = getMindMapShape(getNode(diagram.nodes, connectors.sourceID));
-    var node = mindmapData.node;
-    index = index + 1;
-    node.id = index.toString();
-    if (node.addInfo) {
-        node.addInfo.orientation = orientation_3;
-    }
-    else {
-        node.addInfo = { 'orientation': orientation_3 };
-    }
-    var nodeData = {
-        id: node.id,
-        Label: 'Node',
-        fill: node.style.fill,
-        branch: orientation_3,
-        strokeColor: node.style.strokeColor,
-        parentId: selectedNode.data.id,
-        level: node.addInfo.level,
-        orientation: node.addInfo.orientation,
-        hasChild: false,
-    };
-    node.data = {
-        id: node.id,
-        Label: 'Node',
-        fill: node.style.fill,
-        strokeColor: node.style.strokeColor,
-        orientation: node.addInfo.orientation,
-        branch: orientation_3,
-        parentId: selectedNode.data.id,
-        level: node.addInfo.level,
-        hasChild: false,
-    };
-    var tempData = workingData.filter(
-        (a) => a.id === selectedNode.data.id
-    );
-    tempData[0].hasChild = true;
-    workingData.push(nodeData);
-    diagram.add(node);
-    var connector = setConnectorDefault(diagram, orientation_3, mindmapData.connector, connectors.sourceID, node.id);
-    diagram.add(connector);
-    var node1 = getNode(diagram.nodes, node.id);
-    diagram.doLayout();
-    diagram.endGroupAction();
-    diagram.select([node1]);
-    }
-}
-//define the left userhandle 
+
+
+
+//define the left userhandle
 class LeftExtendTool extends ToolBase {
     mouseDown(args) {
         super.mouseDown(args);
@@ -267,15 +274,15 @@ class LeftExtendTool extends ToolBase {
         if (this.inAction) {
             var selectedElement = this.commandHandler.getSelectedObject();
             var diagram = document.getElementById("diagram").ej2_instances[0];
-            if (selectedElement[0] && selectedElement[0].inEdges !== undefined){
+            if (selectedElement[0] && selectedElement[0].inEdges !== undefined) {
                 diagram.diagramActions |= DiagramAction.PreventHistory;
                 addNode('Right');
-                diagram.diagramActions &= ~ DiagramAction.PreventHistory;
+                diagram.diagramActions &= ~DiagramAction.PreventHistory;
             }
         }
     }
 }
-//define the right userhandle 
+//define the right userhandle
 class RightExtendTool extends ToolBase {
     //mouseDown event
     mouseDown(args) {
@@ -287,15 +294,15 @@ class RightExtendTool extends ToolBase {
         if (this.inAction) {
             var diagram = document.getElementById("diagram").ej2_instances[0];
             var selectedObject = this.commandHandler.getSelectedObject();
-            if (selectedObject[0] && selectedObject[0].inEdges !== undefined){
+            if (selectedObject[0] && selectedObject[0].inEdges !== undefined) {
                 diagram.diagramActions |= DiagramAction.PreventHistory;
                 addNode('Left');
-                diagram.diagramActions &= ~ DiagramAction.PreventHistory;
+                diagram.diagramActions &= ~DiagramAction.PreventHistory;
             }
         }
     }
 }
-//define the delete userhandle 
+//define the delete userhandle
 class DevareClick extends ToolBase {
     //mouseDown event
     mouseDown(args) {
@@ -304,7 +311,7 @@ class DevareClick extends ToolBase {
     }
     //mouseup event
     mouseUp(args) {
-        var diagram=document.getElementById("diagram").ej2_instances[0];
+        var diagram = document.getElementById("diagram").ej2_instances[0];
         if (this.inAction) {
             var selectedObject = this.commandHandler.getSelectedObject();
             if (selectedObject[0]) {
@@ -315,30 +322,17 @@ class DevareClick extends ToolBase {
             }
         }
     }
-    //Remove the subchild Elements
-    removeSubChild(node) {
-        for (let i = node.outEdges.length - 1; i >= 0; i--) {
-            let connector =  this.diagram.getObject(node.outEdges[i]);
-            let childNode =  this.diagram.getObject(connector.targetID);
-            if (childNode.outEdges.length > 0) {
-                this.removeSubChild(childNode);
-            }
-            else {
-                 this.diagram.remove(childNode);
-            }
-        }
-         this.diagram.remove(node);
-    }
 }
 class App extends React.Component {
     constructor(props) {
         super(props);
         this.animationSettings = { effect: 'None' };
         this.dropdownListFields = { text: 'text', value: 'value' };
-        this.snapSettings ={ constraints: SnapConstraints.None }
-        this.scrollSettings = { canAutoScroll: true, scrollLimit: 'Infinity', minZoom: 0.25, maxZoom: 30 };
-        this.rulerSettings={ showRulers: true, 
-            dynamicGrid: true, horizontalRuler: {
+        this.snapSettings = { constraints: SnapConstraints.None }
+        this.scrollSettings = { canAutoScroll: false, scrollLimit: 'Diagram', minZoom: 0.25, maxZoom: 30, padding:{left:70, right:70, top:50, bottom:50} };
+        this.rulerSettings = {
+            showRulers: true,
+          horizontalRuler: {
                 interval: 10,
                 segmentWidth: 100,
                 thickness: 25,
@@ -347,17 +341,19 @@ class App extends React.Component {
                 interval: 10,
                 segmentWidth: 100,
                 thickness: 25,
-            },}
-        var leftUserHandle =   this.setUserHandle('leftHandle', leftArrow, 'Left', 0.5, { top: 10, bottom: 0, left: 0, right: 10 }, 'Left', 'Top');
+            },
+        }
+        var leftUserHandle = this.setUserHandle('leftHandle', leftArrow, 'Left', 0.5, { top: 10, bottom: 0, left: 0, right: 10 }, 'Left', 'Top');
         // eslint-disable-next-line no-use-before-define
-        var rightUserHandle =  this.setUserHandle('rightHandle', rightArrow, 'Right', 0.5, { top: 10, bottom: 0, left: 10, right: 0 }, 'Right', 'Top');
+        var rightUserHandle = this.setUserHandle('rightHandle', rightArrow, 'Right', 0.5, { top: 10, bottom: 0, left: 10, right: 0 }, 'Right', 'Top');
         // eslint-disable-next-line no-use-before-define
-        var deleteUserHandle =  this.setUserHandle('devare', deleteIcon, 'Top', 0.5, { top: 0, bottom: 0, left: 0, right: 0 }, 'Center', 'Center');
+        var deleteUserHandle = this.setUserHandle('devare', deleteIcon, 'Top', 0.5, { top: 0, bottom: 0, left: 0, right: 0 }, 'Center', 'Center');
         var handle = [leftUserHandle, rightUserHandle, deleteUserHandle];
-        this.selectedItems={ constraints: SelectorConstraints.UserHandle, userHandles: handle }
+        this.selectedItems = { constraints: SelectorConstraints.UserHandle, userHandles: handle }
         this.selectedItem = new SelectorViewModel();
         this.propertyChange = new PropertyChange();
         this.dropDownDataSources = new DropDownDataSources();
+        this.utilityMethods = new UtilityMethods();
         this.diagramEvents = new DiagramClientSideEvents(this.selectedItem, this.page);
         this.diagramEvents.ddlTextPosition = this.ddlTextPosition;
         this.dlgTarget = document.body;
@@ -366,163 +362,161 @@ class App extends React.Component {
         this.dialogAnimationSettings = { effect: 'None' };
         this.exportingButtons = this.getDialogButtons('export');
         this.printingButtons = this.getDialogButtons('print');
-        loadDiagram=this.loadDiagram.bind(this);
+        loadDiagram = this.loadDiagram.bind(this);
         beforItem = this.beforeItemRender.bind(this);
         designContextMenuOpen = this.designContextMenuOpen.bind(this);
         editContextMenuOpen = this.editContextMenuOpen.bind(this);
         beforeOpen = this.arrangeMenuBeforeOpen.bind(this);
         beforeClose = this.arrangeMenuBeforeClose.bind(this);
-         menuClick = this.menuClick.bind(this);
+        menuClick = this.menuClick.bind(this);
         editTool = this.toolbarEditorClick.bind(this);
+        toolbarCreated = this.toolbarCreated.bind(this);
         hideToolbar = this.hideToolbar.bind(this);
         zoomTemplate = this.zoomTemplate.bind(this);
         diagramView = this.diagramView.bind(this);
-        textView =this.textView.bind(this);
+        textView = this.textView.bind(this);
         zoomChange = this.zoomChange.bind(this);
-        diagramViewChange= this.diagramViewChange.bind(this);
-        textViewChange=this.textViewChange.bind(this)
+        diagramViewChange = this.diagramViewChange.bind(this);
+        textViewChange = this.textViewChange.bind(this)
         footTemplate = this.footerTemplate.bind(this);
-        printTemplateChange = this.printTemplate.bind(this);
         diagramName = this.diagramNameChange.bind(this);
-        getNode=this.getNode.bind(this);
-        addNode=this.addNode.bind(this);
-        setUserHandle=this.setUserHandle.bind(this);
-        getConnector=this.getConnector.bind(this);
-        getMindMapShape= this.getMindMapShape.bind(this);
-        getNode =this.getNode.bind(this);
-        setConnectorDefault=this.setConnectorDefault.bind(this);
+        getNode = this.getNode.bind(this);
+        addNode = this.addNode.bind(this);
+        addSibilingChild = this.addSibilingChild.bind(this);
+        updateConnectorType = this.updateConnectorType.bind(this);
+        setUserHandle = this.setUserHandle.bind(this);
+        getConnector = this.getConnector.bind(this);
+        getMindMapShape = this.getMindMapShape.bind(this);
+        getNode = this.getNode.bind(this);
+        setConnectorDefault = this.setConnectorDefault.bind(this);
     }
     componentDidMount() {
         this.generateDiagram();
         this.uploader();
         document.onmouseover = this.menumouseover.bind(this);
-        document.getElementById('closeIconDiv').onclick  =this.onHideNodeClick.bind(this);
+        document.getElementById('closeIconDiv').onclick = this.onHideNodeClick.bind(this);
     }
-    
+
     render() {
         return (<div>
             <input type="file" id="fileupload" name="UploadFiles"></input>
-            <ContextMenuComponent id='designContextMenu' ref={arrangeContextMenu => (this.arrangeContextMenu) = arrangeContextMenu} animationSettings={this.animationSettings} onOpen={designContextMenuOpen} cssClass="designMenu" beforeItemRender={beforItem} select={menuClick} beforeClose={() => this.arrangeMenuBeforeClose}/>
             <div className='diagrambuilder-container' >
                 <div className='header navbar'>
                     <div className="db-header-container">
                         <div className="db-diagram-name-container">
                             <span id='diagramName' className="db-diagram-name" style={{
                                 width: "250px", overflow: "hidden",
-                                textOverflow: "ellipse", whiteSpace: "nowrap"}} onClick ={this.renameDiagram}>
+                                textOverflow: "ellipse", whiteSpace: "nowrap"
+                            }} onClick={this.renameDiagram}>
                                 Untitled Diagram
                             </span>
-                            <input id='diagramEditable' type="text" className="db-diagram-name" onFocus={this.diagramNameKeyDown}/>
-                            <span id='diagramreport' className="db-diagram-name db-save-text"/>
+                            <input id='diagramEditable' type="text" className="db-diagram-name" onFocus={this.diagramNameKeyDown} onBlur={this.diagramNameChange} />
+                            <span id='diagramreport' className="db-diagram-name db-save-text" />
                         </div>
                         <div className='db-menu-container'>
-                            <div className="db-menu-style">
-                                <DropDownButtonComponent id="btnFileMenu" cssClass={"db-dropdown-menu"} content="File" items={this.dropDownDataSources.fileMenuItems}  select={menuClick}
-                                beforeItemRender={beforItem} beforeOpen={beforeOpen} beforeClose={beforeClose}/>
-                                
+                            <div className="diagram-menu-control">
+                                <div className="menu-control" style={{display: 'flex', justifyContent: 'space-between'}}>
+                                    <MenuComponent
+                                        id="diagram-menu"
+                                        items={this.dropDownDataSources.newMenuItems}
+                                        cssClass='db-dropdown-menu'
+                                        select={menuClick}
+                                        beforeOpen={beforeOpen}
+                                        beforeClose={beforeClose}
+                                        beforeItemRender={beforItem}>
+                                    </MenuComponent>
+                                    <div className="promotion-text">
+                                        <img style={{marginRight:'7px', filter: 'brightness(0) invert(1)'}} src="./assets/dbstyle/common_images/Syncfusion_Logo.svg" />Powered by&nbsp;<a style={{textDecoration: 'none', color:'#fff30f'}} href="https://www.syncfusion.com/react-components/react-diagram?tag=es-freetools-mind-map-maker-sample-ft" target="_blank">Syncfusion Diagram Component</a>
+                                    </div>
+                                </div>
+
                             </div>
-                            <div className="db-menu-style">
-                                < DropDownButtonComponent id="btnEditMenu" cssClass={"db-dropdown-menu"} content="Edit"
-                                    items={this.dropDownDataSources.editMenuItems} select={menuClick} 
-                                    beforeItemRender={beforItem} beforeOpen={beforeOpen} beforeClose={beforeClose}/>
-                            </div>
-                            <div className="db-menu-style">
-                                <DropDownButtonComponent id="btnViewMenu" cssClass={"db-dropdown-menu"} content="View" items={this.dropDownDataSources.viewMenuItems}  select={menuClick}
-                                beforeItemRender={beforItem} beforeOpen={beforeOpen} beforeClose={beforeClose}/>
-                            </div>  
-                            <div className="db-menu-style">
-                                <DropDownButtonComponent id="btnWindowMenu" cssClass={"db-dropdown-menu"} content="Window" items={this.dropDownDataSources.windowMenuItems}  select={menuClick}
-                                beforeItemRender={beforItem} beforeOpen={beforeOpen} beforeClose={beforeClose}/>
-                            </div> 
                         </div>
                     </div>
                     <div className='db-toolbar-editor' >
                         <div className='db-toolbar-container'>
-                        <ToolbarComponent ref={toolbar => (this.toolbarEditor) = toolbar} id='toolbarEditor' overflowMode='Scrollable' clicked={editTool}>
-                            <ItemsDirective>
-                                <ItemDirective prefixIcon= 'sf-icon-undo tb-icons' tooltipText= 'Undo' disabled={true}/>
-                                <ItemDirective prefixIcon="sf-icon-redo tb-icons" tooltipText="Redo" disabled={true}/>
-                                <ItemDirective type="Separator"/>
-                                <ItemDirective prefixIcon= 'sf-icon-pointer' tooltipText= 'Select Tool' cssClass='tb-item-middle tb-item-selected disableItem'/>
-                                <ItemDirective prefixIcon= 'sf-icon-pan' tooltipText= 'Pan Tool' cssClass='tb-item-middle disableItem'/>
-                                <ItemDirective type="Separator"/>
-                                <ItemDirective prefixIcon= 'sf-icon-add-child' tooltipText= 'Add Child' disabled="true"/>
-                                <ItemDirective prefixIcon= 'sf-icon-add-sibling' tooltipText= 'Add Sibling' disabled="true" />
-                                <ItemDirective prefixIcon= 'sf-icon-multiple-child' tooltipText= 'Add Multiple Child' disabled="true"/>
-                                <ItemDirective tooltipText="Diagram View" template={diagramView} align='Right'/>
-                                <ItemDirective tooltipText="Text View" template={textView} align='Right'/>
-                                <ItemDirective type="Separator"/>
-                                <ItemDirective cssClass="tb-item-end tb-zoom-dropdown-btn" template={zoomTemplate} align='Right'/>
-                            </ItemsDirective>
-                        </ToolbarComponent>
+                            <ToolbarComponent ref={toolbar => (this.toolbarEditor) = toolbar} id='toolbarEditor' overflowMode='Scrollable' clicked={editTool} created={toolbarCreated}>
+                                <ItemsDirective>
+                                    <ItemDirective type="Separator" />
+                                    <ItemDirective prefixIcon='sf-icon-pointer tb-icons' tooltipText='Select Tool' cssClass='tb-item-middle tb-item-selected' />
+                                    <ItemDirective prefixIcon='sf-icon-pan tb-icons' tooltipText='Pan Tool' cssClass='tb-item-start' />
+                                    <ItemDirective type="Separator" />
+                                    <ItemDirective prefixIcon='sf-icon-add-child' tooltipText='Add Child' disabled="true" />
+                                    <ItemDirective prefixIcon='sf-icon-add-sibling' tooltipText='Add Sibling' disabled="true" />
+                                    <ItemDirective prefixIcon='sf-icon-multiple-child' tooltipText='Add Multiple Child' disabled="true" />
+                                    <ItemDirective tooltipText="Diagram View" template={diagramView} align='Right' />
+                                    <ItemDirective tooltipText="Text View" template={textView} align='Right' />
+                                    <ItemDirective type="Separator" />
+                                    <ItemDirective cssClass="tb-item-end tb-zoom-dropdown-btn" template={zoomTemplate} align='Right' />
+                                </ItemsDirective>
+                            </ToolbarComponent>
                         </div>
                         <div className="db-toolbar-hide-btn">
-                        <ButtonComponent  id="btnHideToolbar" isPrimary= {true} iconCss={'sf-icon-properties'} align='Right' onClick={this.hideToolbar.bind(this)}></ButtonComponent>
+                            <ButtonComponent id="btnWindowMenu" isPrimary={true} iconCss={'sf-icon-properties'} align='Right' onClick={this.hideToolbar.bind(this)}></ButtonComponent>
                         </div>
                     </div>
                 </div>
                 <div className='row content'>
                     <div className='main-content' role='main'>
-                        <div id="treeview" className="db-diagram-container" style={{display: "none", overflow: "auto",}}>
+                        <div id="treeview" className="db-diagram-container" style={{ display: "none", overflow: "auto", }}>
                             <div className="control_wrapper">
                                 <div id="tree">
-                           
-                                <TreeViewComponent  id="treeView" fields={fields} allowEditing={true} nodeEdited={this.nodeEdited.bind(this)} keyPress={this.keyPress.bind(this)}/>
-                            </div>
-                            <ContextMenuComponent id="contextmenu" target="#treeView" items={this.dropDownDataSources.menuItems} select={this.treemenuclick} beforeOpen={this.beforeopen} />
-                                    {/* <ul id="contextmenu"></ul> */}
+                                    <TreeViewComponent id="treeView" fields={fields} allowEditing={true} nodeEdited={this.nodeEdited.bind(this)} keyPress={this.keyPress.bind(this)} />
+                                </div>
+                                <ContextMenuComponent id="contextmenu" target="#treeView" items={this.dropDownDataSources.menuItems} select={this.treemenuclick} beforeOpen={this.beforeopen} />
+                                {/* <ul id="contextmenu"></ul> */}
                             </div>
                         </div>
                         <div id="overlay" className="db-diagram-container" >
                             <div id="diagramContainerDiv" className='db-current-diagram-container'>
                                 <DiagramComponent ref={diagram => (this.diagram = diagram)} id="diagram" width={"100%"} height={"100%"}
-                                tool={ DiagramTools.SingleSelect} scrollSettings={this.scrollSettings} rulerSettings={this.rulerSettings}
-                                snapSettings={this.snapSettings}
-                                selectedItems={this.selectedItems}   getCustomTool={this.getTool} 
-                                layout={{
-                                    //Sets layout type
-                                    type: 'MindMap', horizontalSpacing: 50,
-                                    verticalSpacing: 50,
-                                    orientation:"Horizontal", 
-                                    getBranch: function (node) {
-                                        if (node.addInfo) {
-                                            var addInfo = node.addInfo;
-                                            return addInfo.orientation.toString();
+                                    scrollSettings={this.scrollSettings} rulerSettings={this.rulerSettings}
+                                    snapSettings={this.snapSettings}
+                                    selectedItems={this.selectedItems} getCustomTool={this.getTool}
+                                    layout={{
+                                        //Sets layout type
+                                        type: 'MindMap', horizontalSpacing: 50,
+                                        verticalSpacing: 50,
+                                        orientation: "Horizontal",
+                                        getBranch: function (node) {
+                                            if (node.addInfo) {
+                                                var addInfo = node.addInfo;
+                                                return addInfo.orientation.toString();
+                                            }
+                                            return 'Left';
                                         }
-                                        return 'Left';
-                                    }
-                                }} 
-                                //Configures data source for diagram
-                                dataSourceSettings={{
-                                    id: 'id',
-                                    parentId: 'parentId',
-                                    dataSource: items,
-                                    root: String(1),
-                                }}
+                                    }}
+                                    //Configures data source for diagram
+                                    dataSourceSettings={{
+                                        id: 'id',
+                                        parentId: 'parentId',
+                                        dataSource: items,
+                                        root: String(1),
+                                    }}
                                     selectionChange={this.diagramEvents.selectionChange.bind(this.diagramEvents)}
                                     keyDown={this.diagramEvents.keyDown.bind(this)}
-                                    textEdit={this.diagramEvents.textEdit.bind(this.diagramEvents )}
-                                    drop= { this.diagramEvents.textEdit.bind(this.diagramEvents) }
-                                    historyChange={this.diagramEvents.historyChange.bind(this.diagramEvents)} 
-                                    created={this.diagramEvents.created.bind(this)} scrollChange={this.scrollChange.bind(this)} 
+                                    textEdit={this.diagramEvents.textEdit.bind(this.diagramEvents)}
+                                    drop={this.diagramEvents.textEdit.bind(this.diagramEvents)}
+                                    created={this.diagramEvents.created.bind(this)} scrollChange={this.scrollChange.bind(this)}
                                     getConnectorDefaults={this.getConnectorDefaults.bind(this)}
                                     getNodeDefaults={this.getNodeDefaults.bind(this)}
+                                    expandStateChange={this.diagramEvents.expandStateChange.bind(this)}
                                 />
                             </div>
                         </div>
-                        <div id="shortcutDiv" style={{width:"400px",height:"460px",padding:"10px",backgroundColor:"#fff7b5",border:"1px solid #fff7b5" ,position:"absolute",margin:"27px",visibility:"visible"}}>
-                            <div id="closeIconDiv"  style={{width:"22px",height:"22px",padding:"10px",border:"1px solid #fff7b5", float:"right"}} >
+                        <div id="shortcutDiv" style={{ width: "400px", height: "460px", padding: "10px", backgroundColor: "#fff7b5", border: "1px solid #fff7b5", position: "absolute", margin: "27px", visibility: "visible" }}>
+                            <div id="closeIconDiv" style={{ width: "22px", height: "22px", padding: "10px", border: "1px solid #fff7b5", float: "right" }} >
                                 <span
                                     className="sf-icon-close"
-                                    style={{fontSize:"14px", cursor: "pointer"}}
+                                    style={{ fontSize: "14px", cursor: "pointer" }}
                                 ></span>
                             </div>
                             <div><span className="db-html-font-medium">Quick shortcuts</span></div>
-                            <div style={{paddingTop:"10px"}}>
+                            <div style={{ paddingTop: "10px" }}>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">Tab : </span>
-                                    <span className="db-html-font-normal"
+                                        <span className="db-html-font-medium">Tab : </span>
+                                        <span className="db-html-font-normal"
                                         >Add a subtopic to the left</span>
                                     </li>
                                 </ul>
@@ -530,8 +524,8 @@ class App extends React.Component {
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">Shift + Tab : </span>
-                                    <span className="db-html-font-normal"
+                                        <span className="db-html-font-medium">Shift + Tab : </span>
+                                        <span className="db-html-font-normal"
                                         >Add a subtopic to the right</span>
                                     </li>
                                 </ul>
@@ -539,73 +533,73 @@ class App extends React.Component {
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">Enter : </span>
-                                    <span className="db-html-font-normal">Add a new sibling child</span>
+                                        <span className="db-html-font-medium">Enter : </span>
+                                        <span className="db-html-font-normal">Add a new sibling child</span>
                                     </li>
                                 </ul>
                             </div>
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">Delete / Backspace : </span>
-                                    <span className="db-html-font-normal">Delete a topic</span>
+                                        <span className="db-html-font-medium">Delete / Backspace : </span>
+                                        <span className="db-html-font-normal">Delete a topic</span>
                                     </li>
                                 </ul>
                             </div>
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium"
+                                        <span className="db-html-font-medium"
                                         >Arrow(Up, Down, Left, Right) : </span>
-                                    <span className="db-html-font-normal">Navigate between topics</span>
+                                        <span className="db-html-font-normal">Navigate between topics</span>
                                     </li>
                                 </ul>
                             </div>
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">F2 : </span>
-                                    <span className="db-html-font-normal">Edit a topic</span>
+                                        <span className="db-html-font-medium">F2 : </span>
+                                        <span className="db-html-font-normal">Edit a topic</span>
                                     </li>
                                 </ul>
                             </div>
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">Esc : </span>
-                                    <span className="db-html-font-normal">End text editing</span>
+                                        <span className="db-html-font-medium">Esc : </span>
+                                        <span className="db-html-font-normal">End text editing</span>
                                     </li>
                                 </ul>
                             </div>
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">Ctrl + B : </span>
-                                    <span className="db-html-font-normal">To make text bold</span>
+                                        <span className="db-html-font-medium">Ctrl + B : </span>
+                                        <span className="db-html-font-normal">To make text bold</span>
                                     </li>
                                 </ul>
                             </div>
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">Ctrl + I : </span>
-                                    <span className="db-html-font-normal">To make text Italic </span>
+                                        <span className="db-html-font-medium">Ctrl + I : </span>
+                                        <span className="db-html-font-normal">To make text Italic </span>
                                     </li>
                                 </ul>
                             </div>
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">Ctrl + U : </span>
-                                    <span className="db-html-font-normal">Underline the text</span>
+                                        <span className="db-html-font-medium">Ctrl + U : </span>
+                                        <span className="db-html-font-normal">Underline the text</span>
                                     </li>
                                 </ul>
                             </div>
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">Space : </span>
-                                    <span className="db-html-font-normal"
+                                        <span className="db-html-font-medium">Space : </span>
+                                        <span className="db-html-font-normal"
                                         >Expand / Collapse the selected node</span>
                                     </li>
                                 </ul>
@@ -613,8 +607,8 @@ class App extends React.Component {
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">Ctrl + E :</span>
-                                    <span className="db-html-font-normal"
+                                        <span className="db-html-font-medium">Ctrl + E :</span>
+                                        <span className="db-html-font-normal"
                                         >Expand / Collapse the whole diagram</span>
                                     </li>
                                 </ul>
@@ -622,8 +616,8 @@ class App extends React.Component {
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">F8 : </span>
-                                    <span className="db-html-font-normal"
+                                        <span className="db-html-font-medium">F8 : </span>
+                                        <span className="db-html-font-normal"
                                         >To Fit the diagram into the viewport</span>
                                     </li>
                                 </ul>
@@ -631,37 +625,37 @@ class App extends React.Component {
                             <div>
                                 <ul>
                                     <li>
-                                    <span className="db-html-font-medium">F1 : </span>
-                                    <span className="db-html-font-normal">Show/Hide shortcut Key</span>
+                                        <span className="db-html-font-medium">F1 : </span>
+                                        <span className="db-html-font-normal">Show/Hide shortcut Key</span>
                                     </li>
                                 </ul>
                             </div>
                         </div>
-                        <div className='db-property-editor-container' id="propertyPanel" style={{overflow:"auto"}}>
+                        <div className='db-property-editor-container' id="propertyPanel" style={{ overflow: "auto" }}>
                             <div id="propertyHeader" className="row db-prop-header-text">
                                 Properties
                             </div>
                             <div id='mindMapContainer' className="db-mindmap-prop-container">
-                                <div className="row db-prop-header-text" style={{paddingTop:"8px"}}>
+                                <div className="row db-prop-header-text" style={{ paddingTop: "8px" }}>
                                     Orientation Styles
                                 </div>
                                 <div className="row db-prop-row">
                                     <div className="col-xs-6 org-pattern-parent">
-                                        <div onClick ={this.diagramEvents.mindmapPatternChange.bind(this.diagramEvents)}
+                                        <div onClick={this.diagramEvents.mindmapPatternChange.bind(this.diagramEvents)}
                                             className="mindmap-pattern-style mindmap-pattern1"></div>
                                     </div>
                                     <div className="col-xs-6 org-pattern-parent">
-                                        <div onClick ={this.diagramEvents.mindmapPatternChange.bind(this.diagramEvents)}
+                                        <div onClick={this.diagramEvents.mindmapPatternChange.bind(this.diagramEvents)}
                                             className="mindmap-pattern-style mindmap-pattern2"></div>
                                     </div>
                                 </div>
-                                <div className="row db-prop-row" style={{marginTop:"5px"}}>
+                                <div className="row db-prop-row" style={{ marginTop: "5px" }}>
                                     <div className="col-xs-6 org-pattern-parent">
-                                        <div onClick ={this.diagramEvents.mindmapPatternChange.bind(this.diagramEvents)}
+                                        <div onClick={this.diagramEvents.mindmapPatternChange.bind(this.diagramEvents)}
                                             className="mindmap-pattern-style mindmap-pattern3"></div>
                                     </div>
                                     <div className="col-xs-6 org-pattern-parent">
-                                        <div onClick ={this.diagramEvents.mindmapPatternChange.bind(this.diagramEvents)}
+                                        <div onClick={this.diagramEvents.mindmapPatternChange.bind(this.diagramEvents)}
                                             className="mindmap-pattern-style mindmap-pattern4"></div>
                                     </div>
                                 </div>
@@ -671,18 +665,18 @@ class App extends React.Component {
                                 </div>
                                 <div className="row db-prop-row">
                                     <div className="col-xs-12 db-col-left">
-                                        <DropDownListComponent id="mindMapLevels" dataSource={this.dropDownDataSources.mindmapLevels} fields={this.dropdownListFields} value={"Level0"} change={this.mindMapLevelsChange.bind(this)}/>
+                                        <DropDownListComponent id="mindMapLevels" dataSource={this.dropDownDataSources.mindmapLevels} fields={this.dropdownListFields} value={this.selectedItem.mindmapSettings.levelType} change={this.mindMapLevelsChange.bind(this)} />
                                     </div>
                                 </div>
                                 <div className="row db-prop-row">
-                                    <div className="col-xs-8 db-col-right db-prop-text-style" style={{paddingTop:"5px"}}>
+                                    <div className="col-xs-8 db-col-right db-prop-text-style" style={{ paddingTop: "5px" }}>
                                         <span className="db-prop-text-style db-spacing-text">Shape</span>
-                                        <div className="e-text-spacing">
-                                            <DropDownListComponent id="mindMapShape"  value='Rectangle' placeholder="Rectangle" dataSource={this.dropDownDataSources.mindmapShapeDatasource} fields={this.dropdownListFields}  change={this.mindMapShapeChange.bind(this)}/>
+                                        <div className="e-text-spacing" style={{ marginLeft: "-2px" }}>
+                                            <DropDownListComponent id="mindMapShape" value='Ellipse' placeholder="Ellipse" dataSource={this.dropDownDataSources.mindmapShapeDatasource} fields={this.dropdownListFields} change={this.mindMapShapeChange.bind(this)} />
                                         </div>
                                     </div>
-                                    <div className="col-xs-3 db-col-left db-prop-text-style"
-                                        style={{paddingTop:"5px",marginLeft:"10px"}}>
+                                    <div className="col-xs-3 db-col-left db-prop-text-style"  id="mindmapFillDiv"
+                                        style={{ paddingTop: "5px", marginLeft: "10px" }}>
                                         <span className="db-prop-text-style db-spacing-text">Fill Color</span>
                                         <div className="db-color-container e-text-spacing">
                                             <div className="db-color-input">
@@ -692,30 +686,32 @@ class App extends React.Component {
                                     </div>
                                 </div>
                                 <div className="row db-prop-row">
-                                    <div className="col-xs-3 db-col-left db-prop-text-style" style={{paddingTop:"5px"}}>
-                                        <span className="db-prop-text-style db-spacing-text">Stroke </span>
+                                    <div className="col-xs-3 db-col-left db-prop-text-style" style={{ paddingTop: "5px" }} id="mindmapStrokeDiv">
+                                        <span className="db-prop-text-style db-spacing-text"style={{ paddingLeft: "3px" }}>Stroke </span>
                                         <div className="db-color-container e-text-spacing">
-                                            <ColorPickerComponent id='mindmapStroke' mode="Palette" showButtons={false} change={this.mindMapStrokeColorChange.bind(this)}></ColorPickerComponent>
+                                            <div className="db-color-input">
+                                                <ColorPickerComponent id='mindmapStroke' mode="Palette" showButtons={false} change={this.mindMapStrokeColorChange.bind(this)}></ColorPickerComponent>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="col-xs-5 db-col-center db-prop-text-style" style={{paddingTop:"5px"}}>
+                                    <div className="col-xs-5 db-col-center db-prop-text-style" style={{ paddingTop: "5px" }}>
                                         <span className="db-prop-text-style db-spacing-text">Type</span>
                                         <div className="e-text-spacing">
-                                            <DropDownListComponent id="mindmapStrokeStyle" popupWidth="170px" index={0} dataSource={this.dropDownDataSources.borderStyles} fields={this.dropdownListFields} itemTemplate={this.nodeBorderItemTemplate} valueTemplate={this.nodeBorderValueTemplate} change={this.mindmapStrokeStyleChange.bind(this)}/>
+                                            <DropDownListComponent id="mindmapStrokeStyle" popupWidth="170px" index={0} dataSource={this.dropDownDataSources.borderStyles} fields={this.dropdownListFields} itemTemplate={this.nodeBorderItemTemplate} valueTemplate={this.nodeBorderValueTemplate} change={this.mindmapStrokeStyleChange.bind(this)} />
                                         </div>
                                     </div>
-                                    <div className="col-xs-4 db-col-right db-prop-text-style" style={{paddingTop:"5px"}}>
+                                    <div className="col-xs-4 db-col-right db-prop-text-style" style={{ paddingTop: "5px" }}>
                                         <span className="db-prop-text-style db-spacing-text">Thickness</span>
                                         <div className="db-text-input e-text-spacing">
-                                            <NumericTextBoxComponent  id="mindmapStrokeWidth" min={0.5} step={0.5} value={1} format="###.#" change={this.mindmapStrokeWidthChange.bind(this)}></NumericTextBoxComponent>
+                                            <NumericTextBoxComponent id="mindmapStrokeWidth" min={0.5} step={0.5} value={1} format="###.#" change={this.mindmapStrokeWidthChange.bind(this)}></NumericTextBoxComponent>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="row db-prop-row">
-                                    <div className="col-xs-3 db-col-right db-prop-text-style" style={{paddingTop:"6px"}}>
+                                    <div className="col-xs-3 db-col-right db-prop-text-style" style={{ paddingTop: "6px" }}>
                                         <span className="db-prop-text-style">Opacity</span>
                                     </div>
-                                    <div className="col-xs-7 db-col-left" style={{paddingRight:"10px"}}>
+                                    <div className="col-xs-7 db-col-left" style={{ paddingRight: "10px" }}>
                                         <SliderComponent id='mindmapOpacitySlider' min={0} max={100} step={10} value={100} type="MinRange" change={this.mindmapOpacitySliderChange.bind(this)}></SliderComponent>
                                     </div>
                                     <div className="col-xs-2 db-col-right">
@@ -729,10 +725,10 @@ class App extends React.Component {
                                 </div>
                                 <div className="row db-prop-row">
                                     <div className="col-xs-4 db-col-left">
-                                        <RadioButtonComponent  id="bezierRadioButton" label="Bezier" value="Bezier" name="bezier" checked={true} change={this.bezierChange.bind(this)}/>
+                                        <RadioButtonComponent id="bezierRadioButton" label="Bezier" value="Bezier" name="bezier" checked={true} change={this.bezierChange.bind(this)} />
                                     </div>
                                     <div className="col-xs-4 db-col-right">
-                                        <RadioButtonComponent  id="straightRadioButton" label="Straight" value="Straight" name="straight" checked={false} change={this.straightChange.bind(this)}/>
+                                        <RadioButtonComponent id="straightRadioButton" label="Straight" value="Straight" name="straight" checked={false} change={this.straightChange.bind(this)} />
                                     </div>
                                 </div>
                                 <div className="db-prop-separator">
@@ -742,41 +738,41 @@ class App extends React.Component {
                                 </div>
                                 <div className="row db-prop-row">
                                     <div className="col-xs-8 db-col-left">
-                                        <DropDownListComponent id="mindmapFontFamilyList" value="Arial" dataSource={this.dropDownDataSources.fontFamilyList} fields={this.dropdownListFields} change={this.mindmapFontFamilyListChange.bind(this)}/>
+                                        <DropDownListComponent id="mindmapFontFamilyList" value="Arial" dataSource={this.dropDownDataSources.fontFamilyList} fields={this.dropdownListFields} change={this.mindmapFontFamilyListChange.bind(this)} />
                                     </div>
                                     <div className="col-xs-4 db-col-right">
                                         <div className="db-text-input">
-                                            <NumericTextBoxComponent  id="mindmapFontSize" min={1} step={1} value={12} format="###" change={this.mindmapFontSizeChange.bind(this)}></NumericTextBoxComponent>
+                                            <NumericTextBoxComponent id="mindmapFontSize" min={1} step={1} value={12} format="###" change={this.mindmapFontSizeChange.bind(this)}></NumericTextBoxComponent>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="row db-prop-row">
-                                    <div className="col-xs-9 db-col-left">
-                                        <ToolbarComponent id='toolbarTextStyle' overflowMode='Scrollable' clicked={this.textStyleClicked.bind(this)}>
+                                    <div className="col-xs-8 db-col-left">
+                                        <ToolbarComponent id='toolbarTextStyle' width='100%' overflowMode='MultiRow' clicked={this.textStyleClicked.bind(this)}>
                                             <ItemsDirective>
-                                                <ItemDirective prefixIcon="e-icons e-bold" tooltipText="Bold" cssClass="tb-item-start"/>
-                                                <ItemDirective prefixIcon="e-icons e-italic" tooltipText="Italic" cssClass="tb-item-middle"/>
-                                                <ItemDirective prefixIcon="e-icons e-underline" tooltipText="Underline" cssClass="tb-item-end"/>
+                                                <ItemDirective prefixIcon="e-icons e-bold" tooltipText="Bold" cssClass="tb-item-start" />
+                                                <ItemDirective prefixIcon="e-icons e-italic" tooltipText="Italic" cssClass="tb-item-middle" />
+                                                <ItemDirective prefixIcon="e-icons e-underline" tooltipText="Underline" cssClass="tb-item-end" />
                                             </ItemsDirective>
                                         </ToolbarComponent>
                                     </div>
-                                    <div className="col-xs-3 db-col-right" id="textColorDiv">
+                                    <div className="col-xs-4 db-col-right" id="textColorDiv" >
                                         <div className="db-color-container">
                                             <div className="db-color-input">
-                                                <ColorPickerComponent id='mindmapTextColor' mode="Palette" showButtons={false} change={this.mindmapTextColorChange.bind(this)} ></ColorPickerComponent>
+                                                <ColorPickerComponent id='mindmapTextColor'  mode="Palette" showButtons={false} change={this.mindmapTextColorChange.bind(this)} ></ColorPickerComponent>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="row db-prop-row">
-                                    <div className="col-xs-3 db-col-right db-prop-text-style" style={{paddingTop:"6px"}}>
+                                    <div className="col-xs-3 db-col-right db-prop-text-style" style={{ paddingTop: "6px" }}>
                                         <span className="db-prop-text-style">Opacity</span>
                                     </div>
-                                    <div className="col-xs-7 db-col-left" style={{paddingRight:"10px"}}>
+                                    <div className="col-xs-7 db-col-left" style={{ paddingRight: "10px" }}>
                                         <SliderComponent id='mindmapTextOpacitySlider' min={0} max={100} step={10} value={100} type="MinRange" change={this.mindmapTextOpacitySliderChange.bind(this)}></SliderComponent>
                                     </div>
                                     <div className="col-xs-2 db-col-right">
-                                        <input type="text" id="textOpacityText" className="db-readonly-input"  readOnly={true}
+                                        <input type="text" id="textOpacityText" className="db-readonly-input" readOnly={true}
                                             value="100%" />
                                     </div>
                                 </div>
@@ -786,54 +782,55 @@ class App extends React.Component {
                                 </div>
                                 <div className="row db-prop-row">
                                     <div className="col-xs-6 db-col-left">
-                                        <RadioButtonComponent  id="horizontal" label="Horizontal" value="Horizontal" name="Horizontal" checked={true} change={this.horizontalChange.bind(this)}/>
+                                        <RadioButtonComponent id="horizontal" label="Horizontal" value="Horizontal" name="Horizontal" checked={true} change={this.horizontalChange.bind(this)} />
                                     </div>
                                     <div className="col-xs-4 db-col-right">
-                                        <RadioButtonComponent  id="vertical" label="Vertical" value="Vertical" name="Vertical" checked={false} change={this.verticalChange.bind(this)}/>
+                                        <RadioButtonComponent id="vertical" label="Vertical" value="Vertical" name="Vertical" checked={false} change={this.verticalChange.bind(this)} />
                                     </div>
                                 </div>
                                 <div className="db-prop-separator"></div>
                                 <div className="row db-prop-row">
-                                    <div className="col-xs-8 db-col-right db-prop-text-style" style={{paddingTop:"14px"}}>
+                                    <div className="col-xs-8 db-col-right db-prop-text-style" style={{ paddingTop: "14px" }}>
                                         <span className="db-prop-text-style db-spacing-text">Horizontal Spacing</span>
                                     </div>
-                                    <div className="col-xs-4 db-col-left" style={{paddingTop:"10px"}}>
+                                    <div className="col-xs-4 db-col-left" style={{ paddingTop: "10px" }}>
                                         <div className="db-text-input">
-                                            <NumericTextBoxComponent  id="horizontalSpacingBtn" min={50} step={5} max={100} value={50} format="###" change={this.horizontalSpacingBtnChange.bind(this)}></NumericTextBoxComponent>
+                                            <NumericTextBoxComponent id="horizontalSpacingBtn" min={30} step={5} max={200} value={50} format="###" change={this.horizontalSpacingBtnChange.bind(this)}></NumericTextBoxComponent>
                                         </div>
                                     </div>
-                                    <div className="col-xs-8 db-col-right db-prop-text-style" style={{paddingTop:"14px"}}>
+                                    <div className="col-xs-8 db-col-right db-prop-text-style" style={{ paddingTop: "14px" }}>
                                         <span className="db-prop-text-style db-spacing-text">Vertical Spacing</span>
                                     </div>
-                                    <div className="col-xs-4 db-col-left" style={{paddingTop:"10px"}}>
+                                    <div className="col-xs-4 db-col-left" style={{ paddingTop: "10px" }}>
                                         <div className="db-text-input">
-                                            <NumericTextBoxComponent  id="verticalSpacingBtn" min={50} step={5} max={80} value={50} format="###" change={this.verticalSpacingBtnChange.bind(this)}></NumericTextBoxComponent>
+                                            <NumericTextBoxComponent id="verticalSpacingBtn" min={30} step={5} max={200} value={50} format="###" change={this.verticalSpacingBtnChange.bind(this)}></NumericTextBoxComponent>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="row db-prop-row">
-                                    <div className="col-xs-6 db-col-right db-prop-text-style" style={{paddingTop:"10px"}}>
-                                        <CheckBoxComponent id="expandable" label="Expandable" checked={false} change={this.expandableChange.bind(this)}/>
+                                    <div className="col-xs-6 db-col-right db-prop-text-style" style={{ paddingTop: "10px", marginLeft: "-5px" }}>
+                                        <CheckBoxComponent id="expandCheckbox" checked={false} change={this.expandableChange.bind(this)} />
+                                        <span className="db-prop-text-style db-expandCheckbox">Expandable</span>
                                     </div>
                                 </div>
                             </div>
-                            <div id='multipleChildPropertyContainer' className="db-node-prop-container" style={{display:"none"}}>
+                            <div id='multipleChildPropertyContainer' className="db-node-prop-container" style={{ display: "none" }}>
                                 <div className="db-node-behaviour-prop" id="dimen">
-                                    <div className="col-xs-12 db-col-right db-prop-text-style" style={{paddingTop:"10px"}}>
+                                    <div className="col-xs-12 db-col-right db-prop-text-style" style={{ paddingTop: "10px" }}>
                                         <span className="db-prop-text-style db-spacing-text">Please enter one by one</span>
                                     </div>
-                                    <div className="row db-prop-row" style={{paddingTop:"10px"}}>
-                                        <div className="col-xs-12 db-col-left" style={{height:"65%",marginTop:"5px"}} >
-                                            <div style={{height:"95%"}}>
-                                            <TextBoxComponent  id="multipleChildText" className="multipleChildText" floatLabelType="Auto" htmlAttributes={htmlAttributes} required={true}  multiline={true}/>
+                                    <div className="row db-prop-row" style={{ paddingTop: "10px" }}>
+                                        <div className="col-xs-12 db-col-left" style={{ height: "65%", marginTop: "5px" }} >
+                                            <div style={{ height: "95%" }}>
+                                                <TextBoxComponent id="multipleChildText" className="multipleChildText" floatLabelType="Auto" htmlAttributes={htmlAttributes} required={true} multiline={true} />
                                             </div>
                                         </div>
                                     </div>
                                     <div className="row db-prop-row">
-                                        <div className="col-xs-6 db-col-left" style={{height:"75%"}}>
-                                            <ButtonComponent id="cancel" cssClass= 'e-outline' isPrimary={true} onClick={this.cancelOnClick.bind(this)}>Cancel</ButtonComponent>
+                                        <div className="col-xs-6 db-col-left" style={{ height: "75%" }}>
+                                            <ButtonComponent id="cancel" cssClass='e-outline' isPrimary={true} onClick={this.cancelOnClick.bind(this)}>Cancel</ButtonComponent>
                                         </div>
-                                        <div className="col-xs-6 db-col-left" style={{height:"75%"}}>
+                                        <div className="col-xs-6 db-col-left" style={{ height: "75%" }}>
                                             <ButtonComponent id="addChild" isPrimary={true} onClick={this.addOnClick.bind(this)} >Add</ButtonComponent>
                                         </div>
                                     </div>
@@ -844,9 +841,9 @@ class App extends React.Component {
                     </div>
                 </div>
             </div>
-        <DialogComponent ref={dialog => this.exportDialog = dialog} id="exportDialog" width={"400px"} header='Export Diagram' target={this.dlgTarget} isModal={true} animationSettings={this.dialogAnimationSettings} buttons={this.exportingButtons} showCloseIcon={true} content={footTemplate} visible={this.dialogVisibility}/>
-        <DialogComponent id="printDialog" ref={dialog => this.printDialog = dialog} width={"335px"} header='Print Diagram' target={this.dlgTarget} isModal={true} animationSettings={this.dialogAnimationSettings} buttons={this.printingButtons} content={printTemplateChange} visible={this.dialogVisibility}/>
-        
+            <Footer />
+            <DialogComponent ref={dialog => this.exportDialog = dialog} id="exportDialog" width={"400px"} header='Export Diagram' target={this.dlgTarget} isModal={true} animationSettings={this.dialogAnimationSettings} buttons={this.exportingButtons} showCloseIcon={true} content={footTemplate} visible={this.dialogVisibility} />
+
         </div>);
     }
     //To rename the title of the diagram
@@ -867,25 +864,24 @@ class App extends React.Component {
     diagramNameChange() {
         document.getElementById('diagramName').innerHTML = document.getElementById('diagramEditable').value;
         document.getElementsByClassName('db-diagram-name-container')[0].classList.remove('db-edit-name');
-        this.selectedItem.exportSettings.fileName = document.getElementById('diagramName').innerHTML;
+        document.getElementById("exportfileName").value = document.getElementById('diagramName').innerHTML;
     }
     generateDiagram() {
         this.selectedItem.selectedDiagram = this.diagram;
-        
+
     }
     // To change the mindmap level
-    mindMapLevelsChange(args){
+    mindMapLevelsChange(args) {
         isToolbarClicked = false;
         levelType = args.value;
     }
     //To change the mindmap shapes
-    mindMapShapeChange(args)
-    {
+    mindMapShapeChange(args) {
         nodeShape = args.value;
         PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'shape', propertyValue: args });
     }
     //To change the fill color of the nodes
-      mindmapFillChange(args){
+    mindmapFillChange(args) {
         var diagram = document.getElementById("diagram").ej2_instances[0];
         if (isToolbarClicked) {
             diagram.selectedItems.nodes[0].style.fill = args.currentValue.hex;
@@ -893,10 +889,10 @@ class App extends React.Component {
         } else {
             PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'fill', propertyValue: args });
         }
-        
+
     }
-     //To change the stroke color of the nodes/connectors
-     mindMapStrokeColorChange(args){
+    //To change the stroke color of the nodes/connectors
+    mindMapStrokeColorChange(args) {
         var diagram = document.getElementById("diagram").ej2_instances[0];
         if (isToolbarClicked) {
             diagram.selectedItems.nodes[0].style.strokeColor = args.currentValue.hex;
@@ -906,63 +902,65 @@ class App extends React.Component {
         }
     }
     //To change the stroke style
-    mindmapStrokeStyleChange(args){
+    mindmapStrokeStyleChange(args) {
         PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'strokeStyle', propertyValue: args });
     }
     //To change the stoke width
-    mindmapStrokeWidthChange(args){
+    mindmapStrokeWidthChange(args) {
         PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'strokeWidth', propertyValue: args });
     }
     //To change the opacity value
-    mindmapOpacitySliderChange(args){
+    mindmapOpacitySliderChange(args) {
         PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'opacity', propertyValue: args });
     }
-    cancelOnClick(){
-         document.getElementById('mindMapContainer').style.display = '';
-         document.getElementById('multipleChildPropertyContainer').style.display = 'none';
-         document.getElementById('propertyHeader').innerText = "Properties";
+    cancelOnClick() {
+        document.getElementById('mindMapContainer').style.display = '';
+        document.getElementById('multipleChildPropertyContainer').style.display = 'none';
+        document.getElementById('propertyHeader').innerText = "Properties";
     }
     //To add the child to the node
-    addOnClick()
-    {
+    addOnClick() {
         var textareaObj = document.getElementById("multipleChildText").ej2_instances[0];
         var diagram = document.getElementById("diagram").ej2_instances[0];
-         var childText = textareaObj.value.split('\n');
-         var orientation = this.getOrientation();
-         for (var i = 0; i < childText.length; i++) {
-             addNode(orientation, childText[i], true);
-             orientation = diagram.selectedItems.nodes[0].data.branch !== "Root" ? orientation : orientation === "Left" ? "Right" : "Left";
-         }
-         document.getElementById('mindMapContainer').style.display = '';
-         document.getElementById('multipleChildPropertyContainer').style.display = 'none';
-         document.getElementById('propertyHeader').innerText = "Properties";
-         textareaObj.value = "";
+        if (!textareaObj.value) {
+            textareaObj.value = '';
+        }
+        var childText = textareaObj.value.split('\n');
+        var orientation = this.getOrientation();
+        for (var i = 0; i < childText.length; i++) {
+            addNode(orientation, childText[i], true);
+            orientation = diagram.selectedItems.nodes[0].data.branch !== "Root" ? orientation : orientation === "Left" ? "Right" : "Left";
+        }
+        document.getElementById('mindMapContainer').style.display = '';
+        document.getElementById('multipleChildPropertyContainer').style.display = 'none';
+        document.getElementById('propertyHeader').innerText = "Properties";
+        textareaObj.value = "";
     }
     getOrientation() {
-    var leftChildCount = 0;
-    var rightChildCount = 0;
-    var orientation;
-    var diagram = document.getElementById("diagram").ej2_instances[0];
-    if (diagram.selectedItems.nodes[0].data.branch === "Root") {
-        for (var i = 0; i < diagram.nodes.length; i++) {
-            if (diagram.nodes[i].addInfo && diagram.nodes[i].addInfo.level === 1) {
-                if (diagram.nodes[i].addInfo.orientation === "Left") {
-                    leftChildCount++;
-                } else {
-                    rightChildCount++;
+        var leftChildCount = 0;
+        var rightChildCount = 0;
+        var orientation;
+        var diagram = document.getElementById("diagram").ej2_instances[0];
+        if (diagram.selectedItems.nodes[0].data.branch === "Root") {
+            for (var i = 0; i < diagram.nodes.length; i++) {
+                if (diagram.nodes[i].addInfo && diagram.nodes[i].addInfo.level === 1) {
+                    if (diagram.nodes[i].addInfo.orientation === "Left") {
+                        leftChildCount++;
+                    } else {
+                        rightChildCount++;
+                    }
                 }
             }
+            orientation = leftChildCount > rightChildCount ? "Right" : "Left";
+        } else {
+            var selectedNodeOrientation = diagram.selectedItems.nodes[0].addInfo.orientation.toString();
+            orientation = selectedNodeOrientation;
         }
-        orientation = leftChildCount > rightChildCount ? "Right" : "Left";
-    } else {
-        var selectedNodeOrientation = diagram.selectedItems.nodes[0].addInfo.orientation.toString();
-        orientation = selectedNodeOrientation;
-    }
-    return orientation;
+        return orientation;
 
-}
-//To change the connector to bezier
-    bezierChange(){
+    }
+    //To change the connector to bezier
+    bezierChange() {
         var diagram = document.getElementById("diagram").ej2_instances[0];
         var straightRadioButton = document.getElementById("straightRadioButton").ej2_instances[0];
         straightRadioButton.checked = false;
@@ -972,9 +970,11 @@ class App extends React.Component {
             diagram.connectors[i].type = "Bezier";
             diagram.dataBind();
         }
+        setconTypeInPattern('Bezier');
+        updateConnectorType("Bezier");
     }
     //To change the connector to straight
-    straightChange(){
+    straightChange() {
         var diagram = document.getElementById("diagram").ej2_instances[0];
         var bezierRadioButton = document.getElementById("bezierRadioButton").ej2_instances[0];
         bezierRadioButton.checked = false;
@@ -984,26 +984,29 @@ class App extends React.Component {
             diagram.connectors[i].type = "Straight";
             diagram.dataBind();
         }
+        templateType = 'template3';
+        setconTypeInPattern('Straight');
+        updateConnectorType("Straight");
     }
     //To change the mindmap orientation to horizontal
-    horizontalChange(){
+    horizontalChange() {
         var diagram = document.getElementById("diagram").ej2_instances[0];
         var horizontalButton = document.getElementById("horizontal").ej2_instances[0];
         var verticalButton = document.getElementById("vertical").ej2_instances[0];
         verticalButton.checked = false;
-        if(horizontalButton.checked){
+        if (horizontalButton.checked) {
             diagram.layout.orientation = "Horizontal";
             this.updateOrientation(diagram)
             diagram.dataBind();
         }
     }
     //To change the mindmap orientation to  vertical
-    verticalChange(){
+    verticalChange() {
         var diagram = document.getElementById("diagram").ej2_instances[0];
         var horizontalButton = document.getElementById("horizontal").ej2_instances[0];
         var verticalButton = document.getElementById("vertical").ej2_instances[0];
         horizontalButton.checked = false;
-        if(verticalButton.checked){
+        if (verticalButton.checked) {
             diagram.layout.orientation = "Vertical";
             this.updateOrientation(diagram)
             diagram.dataBind();
@@ -1012,38 +1015,83 @@ class App extends React.Component {
     //To update the layout based on the orientation
     updateOrientation(diagram) {
         for (var i = 0; i < diagram.connectors.length; i++) {
-          var connector = diagram.connectors[i];
-          if (diagram.layout.orientation === "Vertical") {
-            if (connector.sourcePortID === "rightPort" && connector.targetPortID === "leftPort") {
-              connector.sourcePortID = 'bottomPort';
-              connector.targetPortID = "topPort";
+            var connector = diagram.connectors[i];
+            if (diagram.layout.orientation === "Vertical") {
+                if (connector.sourcePortID === "rightPort" && connector.targetPortID === "leftPort") {
+                    connector.sourcePortID = 'bottomPort';
+                    connector.targetPortID = "topPort";
+                }
+                if (connector.sourcePortID === "leftPort" && connector.targetPortID === "rightPort") {
+                    connector.sourcePortID = 'topPort';
+                    connector.targetPortID = 'bottomPort';
+                }
+            } else if (diagram.layout.orientation === "Horizontal") {
+                if (connector.sourcePortID === "bottomPort" && connector.targetPortID === "topPort") {
+                    connector.sourcePortID = 'rightPort';
+                    connector.targetPortID = "leftPort";
+                }
+                if (connector.sourcePortID === "topPort" && connector.targetPortID === "bottomPort") {
+                    connector.sourcePortID = 'leftPort';
+                    connector.targetPortID = 'rightPort';
+                }
             }
-            if (connector.sourcePortID === "leftPort" && connector.targetPortID === "rightPort") {
-              connector.sourcePortID = 'topPort';
-              connector.targetPortID = 'bottomPort';
-            }
-          } else if (diagram.layout.orientation === "Horizontal") {
-            if (connector.sourcePortID === "bottomPort" && connector.targetPortID === "topPort") {
-              connector.sourcePortID = 'rightPort';
-              connector.targetPortID = "leftPort";
-            }
-            if (connector.sourcePortID === "topPort" && connector.targetPortID === "bottomPort") {
-              connector.sourcePortID = 'leftPort';
-              connector.targetPortID = 'rightPort';
-            }
-          }
         }
+        for (let j = 0; j < diagram.nodes.length; j++) {
+            const obj = diagram.nodes[j];
+            const orientation = obj.data.orientation;
+            const layoutOrientation = diagram.layout.orientation;
+
+            let offset;
+
+            if (layoutOrientation === 'Horizontal') {
+                if (orientation === 'Left') {
+                    offset = { x: 1, y: 0.5 };
+                } else if (orientation === 'Root') {
+                    offset = { x: 0.5, y: 1 };
+                } else {
+                    offset = { x: 0, y: 0.5 };
+                }
+            } else {
+                if (orientation === 'Left' || orientation === 'Root') {
+                    offset = { x: 0.5, y: 1 };
+                } else {
+                    offset = { x: 0.5, y: 0 };
+                }
+            }
+
+            const shapeExpand = isExpanded ? 'Minus' : 'None';
+            const shapeCollapse = isExpanded ? 'Plus' : 'None';
+
+            obj.expandIcon = {
+                shape: shapeExpand,
+                height: 10,
+                width: 10,
+                fill: 'white',
+                borderColor: 'black',
+                offset
+            };
+
+            obj.collapseIcon = {
+                shape: shapeCollapse,
+                height: 10,
+                width: 10,
+                fill: 'white',
+                borderColor: 'black',
+                offset
+            };
+        }
+
     }
     //To change fontfamily of the text
-    mindmapFontFamilyListChange(args){
+    mindmapFontFamilyListChange(args) {
         PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'fontFamily', propertyValue: args });
     }
     //To change font size of the text
-    mindmapFontSizeChange(args){
-         PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'fontSize', propertyValue: args });
+    mindmapFontSizeChange(args) {
+        PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'fontSize', propertyValue: args });
     }
     //To change font color of the text
-    mindmapTextColorChange(args){
+    mindmapTextColorChange(args) {
         var diagram = document.getElementById("diagram").ej2_instances[0];
         if (isToolbarClicked) {
             diagram.selectedItems.nodes[0].annotations[0].style.color = args.currentValue.hex;
@@ -1053,72 +1101,154 @@ class App extends React.Component {
         }
     }
     //To change opacity value of the text
-    mindmapTextOpacitySliderChange(args){
+    mindmapTextOpacitySliderChange(args) {
         PropertyChange.prototype.mindMapPropertyChange({ propertyName: 'textOpacity', propertyValue: args });
     }
     textStyleClicked(args) {
-            PropertyChange.prototype.mindMapPropertyChange({ propertyName: args.item.tooltipText.toLowerCase(), propertyValue: false });
-}
-// Horizontal spacing
-    horizontalSpacingBtnChange(args){
+        PropertyChange.prototype.mindMapPropertyChange({ propertyName: args.item.tooltipText.toLowerCase(), propertyValue: false });
+    }
+    // Horizontal spacing
+    horizontalSpacingBtnChange(args) {
         var diagram = document.getElementById("diagram").ej2_instances[0];
-         diagram.layout.horizontalSpacing = Number(args.value);
-         diagram.dataBind();
+        diagram.layout.horizontalSpacing = Number(args.value);
+        diagram.dataBind();
     }
     // vertical spacing
-    verticalSpacingBtnChange(args){
-         var diagram = document.getElementById("diagram").ej2_instances[0];
-         diagram.layout.verticalSpacing = Number(args.value);
-         diagram.dataBind();
+    verticalSpacingBtnChange(args) {
+        var diagram = document.getElementById("diagram").ej2_instances[0];
+        diagram.layout.verticalSpacing = Number(args.value);
+        diagram.dataBind();
     }
 
-    expandableChange(args){
-          var diagram = document.getElementById("diagram").ej2_instances[0];
-         isExpanded = args.checked;
-         for (var i = 0; i < diagram.nodes.length; i++) {
-             if (diagram.nodes[i].outEdges.length > 0) {
-                 diagram.nodes[i].expandIcon.shape = args.checked ? "Minus" : "None";
-                 diagram.nodes[i].collapseIcon.shape = args.checked ? "Plus" : "None";
-             }
-         }
+    expandableChange(args) {
+        var diagram = document.getElementById("diagram").ej2_instances[0];
+        isExpanded = args.checked;
+        for (var i = 0; i < diagram.nodes.length; i++) {
+            if (diagram.nodes[i].outEdges.length > 0) {
+                diagram.nodes[i].expandIcon.shape = args.checked ? "Minus" : "None";
+                diagram.nodes[i].collapseIcon.shape = args.checked ? "Plus" : "None";
+            }
+        }
     }
-      nodeBorderItemTemplate(data) {
-        return (<div className='db-ddl-template-style'><span className={data.className}/></div>);
+    nodeBorderItemTemplate(data) {
+        return (<div className='db-ddl-template-style'><span className={data.className} /></div>);
     }
     ;
     // set the value to value template
     nodeBorderValueTemplate(data) {
-        return (<div className='db-ddl-template-style'><span className={data.className}/></div>);
+        return (<div className='db-ddl-template-style'><span className={data.className} /></div>);
     }
     ;
     //To open the file
-    uploader(){
+    uploader() {
         let uploadObj = new Uploader({
-        asyncSettings: {
-            saveUrl: 'https://services.syncfusion.com/react/production/api/FileUploader/Save',
-            removeUrl: 'https://services.syncfusion.com/react/production/api/FileUploader/Remove'
-        },
-        success: this.onUploadSuccess,
-        showFileList:false
-      });
-      uploadObj.appendTo('#fileupload');
-      }
-    
-        onUploadSuccess(args) {
+            asyncSettings: {
+                saveUrl: 'https://services.syncfusion.com/react/production/api/FileUploader/Save',
+                removeUrl: 'https://services.syncfusion.com/react/production/api/FileUploader/Remove'
+            },
+            success: this.onUploadSuccess,
+            showFileList: false
+        });
+        uploadObj.appendTo('#fileupload');
+    }
+
+    onUploadSuccess(args) {
         var file1 = args.file;
         var file = file1.rawFile;
         var reader = new FileReader();
+        var fileName = file.name;
+        if (fileName.includes(".json")) {
+            fileName = fileName.replace(".json", "");
+        }
         reader.readAsText(file);
         reader.onloadend = loadDiagram;
-      }
-      
-      //Load the diagraming object.
-      loadDiagram(event) {
-        let diagrm = document.getElementById('diagram').ej2_instances[0];
-        diagrm.loadDiagram(event.target.result);
-      }
-      //To add node 
-     addNode(orientation, label, canSelect) {
+        this.clearAll();
+        setTimeout(() => {
+            let newDiagram = document.getElementById('diagram').ej2_instances[0];
+            // newDiagram.fitToPage({ mode: 'Page' });
+            document.getElementById('diagramName').innerHTML = document.getElementById('diagramEditable').value = fileName;
+            document.getElementById("exportfileName").value = fileName;
+            workingData = [];
+            if (newDiagram.dataSourceSettings.dataSource && newDiagram.dataSourceSettings.dataSource.dataSource.json && newDiagram.dataSourceSettings.dataSource.dataSource.json.length > 0) {
+                for (let i = 0; i < newDiagram.dataSourceSettings.dataSource.dataSource.json.length; i++) {
+                    let treeData = newDiagram.dataSourceSettings.dataSource.dataSource.json[i];
+                    workingData.push(treeData);
+                }
+            }
+        }, 2000);
+
+    }
+
+    //Load the diagraming object.
+    loadDiagram(event) {
+        let diagram = document.getElementById('diagram').ej2_instances[0];
+        diagram.loadDiagram(event.target.result);
+        workingData = [];
+        let loadedData = [];
+        if (diagram.dataSourceSettings.dataSource && diagram.dataSourceSettings.dataSource.dataSource && diagram.dataSourceSettings.dataSource.dataSource.json) {
+            loadedData = diagram.dataSourceSettings.dataSource.dataSource.json;
+        } else if (diagram.dataSourceSettings.dataSource && diagram.dataSourceSettings.dataSource.json) {
+            loadedData = diagram.dataSourceSettings.dataSource.json;
+        }
+        for (let i = 0; i < loadedData.length; i++) {
+            let node = loadedData[i];
+            let nodeObject = diagram.nodes[i];
+            if(!nodeObject){
+                alert('undefined');
+            }
+            workingData.push({
+                id: node.id,
+                Label: node.Label,
+                branch: node.branch,
+                hasChild: node.hasChild,
+                nodeHeight: diagram.nodes[i].height, 
+                level: node.level,
+                fill: node.fill,
+                strokeColor: nodeObject.style.strokeColor,
+                strokeWidth: nodeObject.style.strokeWidth,
+                strokeStyle: nodeObject.style.strokeDashArray,
+                opacity: nodeObject.style.opacity,
+                orientation: node.orientation,
+                nodeShapeType: node.nodeShapeType || 'Basic',
+                nodeShape: node.nodeShape || 'Rectangle',
+                nodeShapeData: node.nodeShapeData || '',
+                parentId: node.parentId || undefined,
+                fontFamily: node.fontFamily,
+                fontSize: node.fontSize,
+                fontColor: node.fontColor,
+                textOpacity: node.textOpacity,
+                bold: node.bold,
+                italic: node.italic,
+                textDecoration: node.textDecoration,
+            });
+        }
+        if(diagram.connectors.length>0){
+            let connType = diagram.connectors[0].type;
+            setconTypeInPattern(connType);
+            updateConnectorType(connType);
+        }
+        diagram.dataSourceSettings.dataSource = new DataManager(workingData);
+        index = workingData.length;
+        setMindMapPatternTarget(diagram.mindMapPatternTarget);
+        var pattern = getconTypeInPattern();
+        if (pattern) {
+            updateConnectorType(pattern);
+        }
+        diagram.dataBind();
+        diagram.doLayout();
+    }
+
+    updateConnectorType(type) {
+        let diagram = document.getElementById('diagram').ej2_instances[0];
+        for (var i = 0; i < diagram.connectors.length; i++) {
+            diagram.connectors[i].type = type;
+        }
+        diagram.dataBind();
+    }
+
+   
+    //To add node
+    addNode(orientation, label, canSelect) {
         var selectedNode = this.diagram.selectedItems.nodes[0];
         if (selectedNode.data.branch !== 'Root') {
             var selectedNodeOrientation = selectedNode.addInfo.orientation.toString();
@@ -1138,6 +1268,7 @@ class App extends React.Component {
         }
         selectedNode.expandIcon.shape = isExpanded ? 'Minus' : 'None';
         selectedNode.collapseIcon.shape = isExpanded ? 'Plus' : 'None';
+        let sameLevelNode = workingData.find(data=>data.level === node.addInfo.level);
         var nodeData = {
             id: node.id,
             Label: label ? label : "Node",
@@ -1147,6 +1278,9 @@ class App extends React.Component {
             parentId: selectedNode.data.id,
             level: node.addInfo.level,
             orientation: node.addInfo.orientation,
+            strokeWidth: node.style.strokeWidth || (sameLevelNode && sameLevelNode.strokeWidth) || 1,
+            strokeStyle: node.style.strokeDashArray || (sameLevelNode && sameLevelNode.strokeStyle) || "",
+            shapeOpacity: node.style.opacity || (sameLevelNode && sameLevelNode.shapeOpacity),
             hasChild: false,
         };
         node.data = {
@@ -1158,6 +1292,9 @@ class App extends React.Component {
             branch: orientation,
             parentId: selectedNode.data.id,
             level: node.addInfo.level,
+            strokeWidth: node.style.strokeWidth || (sameLevelNode && sameLevelNode.strokeWidth) || 1,
+            strokeStyle: node.style.strokeDashArray || (sameLevelNode && sameLevelNode.strokeStyle) || "",
+            shapeOpacity: node.style.opacity || (sameLevelNode && sameLevelNode.shapeOpacity),
             hasChild: false,
         };
         var tempData = workingData.filter(
@@ -1165,6 +1302,11 @@ class App extends React.Component {
         );
         tempData[0].hasChild = true;
         workingData.push(nodeData);
+        let dataSource = this.diagram.dataSourceSettings.dataSource.dataSource.json;
+        let dataObj = dataSource.find(data=>data.id === nodeData.id);
+        if (!dataObj) {
+            dataSource.push(nodeData);
+        }
         this.diagram.add(node);
         var connector = this.setConnectorDefault(this.diagram, orientation, mindmapData.connector, selectedNode.id, node.id);
         this.diagram.add(connector);
@@ -1174,12 +1316,104 @@ class App extends React.Component {
         if (!canSelect) {
             this.diagram.select([node1]);
         }
-    
+        var mindMapPatternTarget = getMindMapPatternTarget();
+        var conType;
+        if (mindMapPatternTarget) {
+            if (selectedNode.inEdges && selectedNode.inEdges.length > 0) {
+                conType = this.diagram.getObject(selectedNode.inEdges[0]).type
+            } else {
+                conType = this.diagram.connectors[0].type;
+            }
+            this.diagramEvents.mindmapPatternChange(mindMapPatternTarget, conType);
+        }
         this.diagram.dataBind();
     }
 
-  
-     setUserHandle(name, pathData, side, offset, margin, horizontalAlignment, verticalAlignment) {
+
+    //To add sibling child to the child node
+    addSibilingChild() {
+        var diagram = document.getElementById("diagram").ej2_instances[0];
+        var selectedNode = diagram.selectedItems.nodes[0];
+        if (selectedNode.data.branch !== 'Root') {
+            var selectedNodeOrientation = selectedNode.addInfo.orientation.toString();
+            var orientation_3 = selectedNodeOrientation;
+            var connectors = getConnector(diagram.connectors, selectedNode.inEdges[0]);
+            diagram.startGroupAction();
+            var mindmapData = getMindMapShape(getNode(diagram.nodes, connectors.sourceID));
+            var node = mindmapData.node;
+            index = index + 1;
+            node.id = index.toString();
+            if (node.addInfo) {
+                node.addInfo.orientation = orientation_3;
+            }
+            else {
+                node.addInfo = { 'orientation': orientation_3 };
+            }
+            var nodeData = {
+                id: node.id,
+                Label: 'Node',
+                fill: node.style.fill,
+                branch: orientation_3,
+                strokeColor: node.style.strokeColor,
+                parentId: selectedNode.data.parentId,
+                level: node.addInfo.level,
+                orientation: node.addInfo.orientation,
+                strokeColor: node.style.strokeColor,
+                strokeWidth: node.style.strokeWidth || selectedNode.style.strokeWidth,
+                strokeStyle: node.style.strokeDashArray || selectedNode.style.strokeDashArray,
+                shapeOpacity: node.style.opacity || selectedNode.style.opacity,
+                hasChild: false,
+            };
+            node.data = {
+                id: node.id,
+                Label: 'Node',
+                fill: node.style.fill,
+                strokeColor: node.style.strokeColor,
+                orientation: node.addInfo.orientation,
+                branch: orientation_3,
+                parentId: selectedNode.data.parentId,
+                level: node.addInfo.level,
+                strokeColor: node.style.strokeColor,
+                strokeWidth: node.style.strokeWidth || selectedNode.style.strokeWidth,
+                strokeStyle: node.style.strokeDashArray || selectedNode.style.strokeDashArray,
+                shapeOpacity: node.style.opacity || selectedNode.style.opacity,
+                hasChild: false,
+            };
+            var tempData = workingData.filter(
+                (a) => a.id === selectedNode.data.id
+            );
+            tempData[0].hasChild = true;
+            workingData.push(nodeData);
+            let dataSource = diagram.dataSourceSettings.dataSource.dataSource.json;
+            let dataObj = dataSource.find(data=>data.id === nodeData.id);
+            if (!dataObj) {
+                dataSource.push(nodeData);
+            }
+            diagram.add(node);
+            var connector = setConnectorDefault(diagram, orientation_3, mindmapData.connector, connectors.sourceID, node.id);
+            diagram.add(connector);
+            var node1 = getNode(diagram.nodes, node.id);
+            diagram.doLayout();
+            diagram.endGroupAction();
+            diagram.select([node1]);
+            var mindMapPatternTarget = getMindMapPatternTarget();
+            var conType;
+            if (mindMapPatternTarget) {
+                if(selectedNode.inEdges && selectedNode.inEdges.length > 0){
+                conType = this.diagram.getObject(selectedNode.inEdges[0]).type
+                } else {
+                    conType = this.diagram.connectors[0].type;
+                }
+                this.diagramEvents.mindmapPatternChange(mindMapPatternTarget, conType);
+            }
+            var diagramOrientation = diagram.layout.orientation;
+            if (diagramOrientation === 'Vertical') {
+                this.updateOrientation(diagram);
+            }
+        }
+    }
+
+    setUserHandle(name, pathData, side, offset, margin, horizontalAlignment, verticalAlignment) {
         var userhandle = {
             name: name,
             pathData: pathData,
@@ -1194,7 +1428,7 @@ class App extends React.Component {
         return userhandle;
     }
     //To select the mindmap levels
-     addMindMapLevels(level) {
+    addMindMapLevels(level) {
         var mindMap = document.getElementById('mindMapLevels');
         var dropDownList = mindMap.ej2_instances[0];
         var dropDownDataSource = dropDownList.dataSource;
@@ -1220,7 +1454,7 @@ class App extends React.Component {
         }
         return null;
     };
-     getNode(nodes, name) {
+    getNode(nodes, name) {
         for (var i = 0; i < nodes.length; i++) {
             if (nodes[i].id === name) {
                 return nodes[i];
@@ -1229,14 +1463,13 @@ class App extends React.Component {
         return null;
     };
     //To get mindmap shape
-     getMindMapShape(parentNode) {
+    getMindMapShape(parentNode) {
         var element = {};
         var node = {};
         var connector = {};
         var addInfo = parentNode.addInfo;
         if (templateType === 'template1') {
             var annotations = {
-                //verticalAlignment: 'Bottom', offset: { x: 0.5, y: 0 },
                 content: ''
             };
             node = {
@@ -1279,18 +1512,17 @@ class App extends React.Component {
         else {
             node.style.strokeColor = node.style.fill = parentNode.style.fill;
         }
-        connector.type = connectorType;
+        connector.type = getconTypeInPattern() || connector.type;
         connector.style.strokeColor = node.style.fill;
         connector.targetDecorator = { shape: 'None' };
-        //connector.constraints = ej.diagrams.ConnectorConstraints.PointerEvents | ej.diagrams.ConnectorConstraints.Select | ej.diagrams.ConnectorConstraints.Delete;
         node.constraints = NodeConstraints.Default & ~NodeConstraints.Drag;
-        node.ports = [{ id: 'leftPort', offset: { x: 0, y: 0.5 } }, { id: 'rightPort', offset: { x: 1, y: 0.5 } },{ id: 'topPort', offset: { x: 0.5, y: 0 } },{ id: 'bottomPort', offset: { x: 0.5, y: 1 } }];
+        node.ports = [{ id: 'leftPort', offset: { x: 0, y: 0.5 } }, { id: 'rightPort', offset: { x: 1, y: 0.5 } }, { id: 'topPort', offset: { x: 0.5, y: 0 } }, { id: 'bottomPort', offset: { x: 0.5, y: 1 } }];
         element.node = node;
         element.connector = connector;
         return element;
     };
-    
-     setConnectorDefault(diagram, orientation, connector, sourceID, targetID) {
+
+    setConnectorDefault(diagram, orientation, connector, sourceID, targetID) {
         connector.id = 'connector' + randomId();
         connector.sourceID = sourceID;
         connector.targetID = targetID;
@@ -1307,7 +1539,6 @@ class App extends React.Component {
         const shortCutText = this.getShortCutKey(args.item.text);
         if (shortCutText) {
             const shortCutSpan = createElement('span');
-           // const text = args.item.text;
             shortCutSpan.textContent = shortCutText;
             shortCutSpan.style.pointerEvents = 'none';
             args.element.appendChild(shortCutSpan);
@@ -1323,9 +1554,9 @@ class App extends React.Component {
             }
         }
     }
-     getTool(action) {
+    getTool(action) {
         var tool;
-        var  diagram = document.getElementById("diagram").ej2_instances[0];
+        var diagram = document.getElementById("diagram").ej2_instances[0];
         if (action === 'leftHandle') {
             tool = new LeftExtendTool(diagram.commandHandler);
         } else if (action === 'rightHandle') {
@@ -1343,7 +1574,7 @@ class App extends React.Component {
             args.element.style.top = formatUnit(parseInt(args.element.style.top, 10) - parseInt(popup.style.top, 10));
         }
     }
-      //To render the context menu items of edit menu item
+    //To render the context menu items of edit menu item
     editContextMenuOpen(args) {
         if (args.element.classList.contains('e-menu-parent')) {
             var popup = document.querySelector('#btnEditMenu-popup');
@@ -1354,72 +1585,26 @@ class App extends React.Component {
     //To render export dialog
     footerTemplate() {
         return (<div id="exportDialogContent">
+            <div className="row">
                 <div className="row">
+                    File Name
+                </div>
+                <div className="row db-dialog-child-prop-row">
+                    <input type="text" id="exportfileName" ref={exportfileName => this.exportfileName = exportfileName} defaultValue={this.utilityMethods.fileName()} />
+                </div>
+            </div>
+            <div className="row db-dialog-prop-row">
+                <div className="col-xs-6 db-col-left">
                     <div className="row">
-                        File Name
-                </div>
+                        Format
+                    </div>
                     <div className="row db-dialog-child-prop-row">
-                        <input type="text" id="exportfileName" defaultValue="Untitled Diagram"  autoComplete="off"/>
-                    </div>
-                </div>
-                <div className="row db-dialog-prop-row">
-                    <div className="col-xs-6 db-col-left">
-                        <div className="row">
-                            Format
-                    </div>
-                        <div className="row db-dialog-child-prop-row">
-                            <DropDownListComponent id="exportFormat" ref={dropdown => this.ddlTextPosition = dropdown} value={this.selectedItem.exportSettings.format} dataSource={this.dropDownDataSources.fileFormats} fields={this.dropdownListFields}/>
+                        <DropDownListComponent id="exportFormat" ref={dropdown => this.ddlTextPosition = dropdown} value={this.selectedItem.exportSettings.format} dataSource={this.dropDownDataSources.fileFormats} fields={this.dropdownListFields} />
 
-                        </div>
                     </div>
                 </div>
-            </div>);
-    }
-       //To render print dialog
-    printTemplate() {
-        return (<div id="printDialogContent">
-                <div className="row db-dialog-prop-row">
-                    <div className="row">
-                        Print Settings
-                </div>
-                    <div className="row db-dialog-child-prop-row">
-                        <DropDownListComponent ref={dropdown => this.ddlTextPosition = dropdown} dataSource={this.dropDownDataSources.paperList} fields={this.dropdownListFields} value={this.selectedItem.pageSettings.paperSize}/>
-                    </div>
-                </div>
-                <div id="printCustomSize" className="row db-dialog-prop-row" style={{ display: "none", height: "28px" }}>
-                    <div className="col-xs-6 db-col-left">
-                        <div className="db-text-container">
-                            <div className="db-text">
-                                <span>W</span>
-                            </div>
-                            <div className="db-text-input">
-                                <NumericTextBoxComponent id="printPageWidth" min={100} step={1} format="n0" value={this.selectedItem.printSettings.pageWidth}/>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="col-xs-6 db-col-right">
-                        <div className="db-text-container">
-                            <div className="db-text">
-                                <span>H</span>
-                            </div>
-                            <div className="db-text-input">
-                                <NumericTextBoxComponent id="printPageHeight" min={100} step={1} format="n0" value={this.selectedItem.printSettings.pageHeight}/>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="printOrientation" className="row db-dialog-prop-row" style={{ height: "28px", padding: "5px 0px" }}>
-                    <div className="col-xs-3 db-prop-col-style" style={{ marginRight: "8px" }}>
-                        <RadioButtonComponent id='printPortrait' label="Portrait" name="printSettings" checked={this.selectedItem.printSettings.isPortrait}/>
-                    </div>
-                    <div className="col-xs-3 db-prop-col-style">
-                        <RadioButtonComponent id='printLandscape' label="Landscape" name="printSettings" checked={this.selectedItem.printSettings.isLandscape}/>
-                    </div>
-                </div>
-                <div className="row db-dialog-prop-row" style={{ marginTop: "16px" }}>
-                    <CheckBoxComponent id='printMultiplePage' label="Scale to fit 1 page" checked={this.selectedItem.printSettings.multiplePage}/>
-                </div>
-            </div>);
+            </div>
+        </div>);
     }
     //To get th dialog buttons
     getDialogButtons(dialogType) {
@@ -1441,39 +1626,20 @@ class App extends React.Component {
             click: this.btnCancelClick.bind(this), buttonModel: { content: 'Cancel', cssClass: 'e-flat', isPrimary: true }
         });
         return buttons;
-    }   
+    }
     btnExportClick() {
         var diagram = this.selectedItem.selectedDiagram;
-        var format= document.getElementById("exportFormat").ej2_instances[0];
+        var format = document.getElementById("exportFormat").ej2_instances[0];
         diagram.exportDiagram({
-            fileName: this.selectedItem.exportSettings.fileName,
+            fileName: this.exportfileName.value,
             format: format.value,
-           multiplePage:diagram.pageSettings.multiplePage
+            multiplePage: diagram.pageSettings.multiplePage
         });
         this.exportDialog.hide();
     }
     btnPrintClick() {
         let pageWidth = this.selectedItem.printSettings.pageWidth;
         let pageHeight = this.selectedItem.printSettings.pageHeight;
-        const paperSize =this.getPaperSize(this.selectedItem.printSettings.paperSize);
-        if (paperSize.pageHeight && paperSize.pageWidth) {
-            pageWidth = paperSize.pageWidth;
-            pageHeight = paperSize.pageHeight;
-        }
-        if (this.selectedItem.pageSettings.isPortrait) {
-            if (pageWidth > pageHeight) {
-                const temp = pageWidth;
-                pageWidth = pageHeight;
-                pageHeight = temp;
-            }
-        }
-        else {
-            if (pageHeight > pageWidth) {
-                const temp = pageHeight;
-                pageHeight = pageWidth;
-                pageWidth = temp;
-            }
-        }
         const diagram = this.selectedItem.selectedDiagram;
         diagram.print({
             "region": this.selectedItem.printSettings.region,
@@ -1481,7 +1647,6 @@ class App extends React.Component {
             "multiplePage": !this.selectedItem.printSettings.multiplePage,
             "pageOrientation": this.selectedItem.printSettings.isPortrait ? 'Portrait' : 'Landscape'
         });
-        this.printDialog.hide();
     }
     btnCancelClick(args) {
         const ss = args.target;
@@ -1491,142 +1656,156 @@ class App extends React.Component {
             case 'exportDialog':
                 this.exportDialog.hide();
                 break;
-            case 'printDialog':
-                this.printDialog.hide();
-                break;
         }
     }
-    toolbarEditorClick(args) 
-        {
-            var diagram = this.selectedItem.selectedDiagram;
-            var item = args.item.tooltipText;
-            // eslint-disable-next-line default-case
-            switch(item)
-            {
-                case 'Undo':
-                    diagram.undo();
-                    break;
-                case 'Redo':
-                    diagram.redo();
-                    break;
-                case 'Select Tool':
-                    diagram.clearSelection();
-                    diagram.tool = DiagramTools.Default;
-                    break;
-                case 'Pan Tool':
-                    diagram.clearSelection()
-                    diagram.tool = DiagramTools.ZoomPan;
-                    break;
-                case 'Add Child':
-                    var orientation = getOrientation();
-                    addNode(orientation);
-                    break;
-                case 'Add Sibling':
-                    addSibilingChild();
-                    break;
-                case 'Add Multiple Child':
-                    addMultipleChild();
-                    break;
-            }
-            if (item === 'Undo' || item === 'Redo' || item === 'Select Tool' || item === 'Pan Tool' || item === 'Add Child' || item === 'Add Sibling' || item === 'Add Multiple Child') {
-                if (args.item.cssClass.indexOf('tb-item-selected') === -1) {
-                    removeSelectedToolbarItem();
-                    args.item.cssClass += ' tb-item-selected';
-                }
-                diagram.dataBind();
+    toolbarCreated(args) {
+        this.toolbarEditor.items
+        this.diagramView.checked = currectView === 'DiagramView';
+        this.textView.checked = currectView === 'TextView';
+    }
+    toolbarEditorClick(args) {
+        var diagram = this.selectedItem.selectedDiagram;
+        var item = args.item.tooltipText;
+        // eslint-disable-next-line default-case
+        switch (item) {
+            case 'Undo':
+                diagram.undo();
+                break;
+            case 'Redo':
+                diagram.redo();
+                break;
+            case 'Select Tool':
+                diagram.clearSelection();
+                diagram.tool = DiagramTools.Default;
+                break;
+            case 'Pan Tool':
+                diagram.clearSelection()
+                diagram.tool = DiagramTools.ZoomPan;
+                break;
+            case 'Add Child':
+                var orientation = getOrientation();
+                addNode(orientation);
+                break;
+            case 'Add Sibling':
+                addSibilingChild();
+                break;
+            case 'Add Multiple Child':
+                addMultipleChild();
+                break;
+        }
+        if (item === 'Undo' || item === 'Redo' || item === 'Select Tool' || item === 'Pan Tool' || item === 'Add Child' || item === 'Add Sibling' || item === 'Add Multiple Child') {
+            if (args.item.cssClass.indexOf('tb-item-selected') === -1) {
+                removeSelectedToolbarItem();
+                args.item.cssClass += ' tb-item-selected';
             }
             diagram.dataBind();
-        };
-//Zoom change button in toolbar
+        }
+        diagram.dataBind();
+    };
+    //Zoom change button in toolbar
     zoomTemplate() {
         return (<div id="template_toolbar">
-            <DropDownButtonComponent id="btnZoomIncrement" items={this.dropDownDataSources.zoomMenuItems} content={this.selectedItem.scrollSettings.currentZoom} select={zoomChange}/>
+            <DropDownButtonComponent id="btnZoomIncrement" items={this.dropDownDataSources.zoomMenuItems} content={this.selectedItem.scrollSettings.currentZoom} select={zoomChange} />
         </div>);
     }
     //diagram view radio button in toolbar
-    diagramView(){
-         return (<div id="template_toolbar" style={{marginLeft:"2px"}}>
-         <RadioButtonComponent id="diagramView"value="Diagram View" name="mindmapView" label="Diagram View" checked={true} change={diagramViewChange}></RadioButtonComponent>
-     </div>);
-        
+    diagramView() {
+        return (<div id="template_toolbar" style={{ marginLeft: "2px" }}>
+            <RadioButtonComponent id="diagramView" ref={diagramView => (this.diagramView) = diagramView} value="Diagram View" name="mindmapView" label="Diagram View" checked={true} change={diagramViewChange}></RadioButtonComponent>
+        </div>);
+
     }
     //textview radio button in toolbar
-    textView(){
-        return (<div id="template_toolbar" style={{marginLeft:"2px"}}>
-        <RadioButtonComponent id="textview"value="Text View" name="mindmapView" label="Text View" change={textViewChange}></RadioButtonComponent>
-    </div>);
+    textView() {
+        return (<div id="template_toolbar" style={{ marginLeft: "2px" }}>
+            <RadioButtonComponent id="textview" ref={textView => (this.textView) = textView} value="Text View" name="mindmapView" label="Text View" change={textViewChange}></RadioButtonComponent>
+        </div>);
     }
-    nodeEdited(args){
+    nodeEdited(args) {
         var treeObj = document.getElementById("treeView").ej2_instances[0]
         var tempData = workingData.filter((a) => a.id === args.nodeData.id);
         tempData[0].Label = args.newText;
         treeObj.selectedNodes = [args.nodeData.id];
     }
-    keyPress(args){
+    keyPress(args) {
         if (args.event.key === 'Enter') {
-           addTreeNode();
+            addTreeNode();
         } else {
             setTimeout(() => {
                 console.log(args);
             }, 0);
         }
     }
-   // To enable the toolbar items
+    // To enable the toolbar items
     enableMenuItems(itemText, selectedItem) {
-        let diagram = document.getElementById("diagram").ej2_instances[0];
-        let selectedItems = selectedItem.selectedDiagram.selectedItems.nodes;
-        selectedItems = selectedItems.concat(selectedItem.selectedDiagram.selectedItems.connectors);
-        if (itemText) {
-            var commandType = itemText.replace(/[' ']/g, '');
-            if (selectedItems.length === 0) {
-                // eslint-disable-next-line default-case
-                switch (commandType.toLowerCase()) {
-                    case 'edittooltip':
-                        var disable = false;
-                        if (!(selectedItems.length === 1)) {
-                            disable = true;
-                        }
-                        return disable;
-                    case 'cut':
-                        return true;
-                    case 'copy':
-                        return true;
-                    case 'delete':
-                        return true;
-                    case 'duplicate':
-                        return true;
+        let diagram = document.getElementById("diagram");
+        if (diagram && diagram.ej2_instances) {
+            diagram = diagram.ej2_instances[0];
+            let selectedItems = selectedItem.selectedDiagram.selectedItems.nodes;
+            selectedItems = selectedItems.concat(selectedItem.selectedDiagram.selectedItems.connectors);
+            if (itemText) {
+                var commandType = itemText.replace(/[' ']/g, '');
+                if (selectedItems.length === 0) {
+                    // eslint-disable-next-line default-case
+                    switch (commandType.toLowerCase()) {
+                        case 'edittooltip':
+                            var disable = false;
+                            if (!(selectedItems.length === 1)) {
+                                disable = true;
+                            }
+                            return disable;
+                        case 'cut':
+                            return true;
+                        case 'copy':
+                            return true;
+                        case 'delete':
+                            return true;
+                        case 'duplicate':
+                            return true;
+                        case 'addchild':
+                        case 'addsibling':
+                        case 'addmultiplechild':
+                            return true;
+                    }
                 }
-            }
-            if (selectedItems.length > 1) {
-                // eslint-disable-next-line default-case
-                switch (commandType.toLowerCase()) {
-                    case 'edittooltip':
-                        return true;
+                if (selectedItems.length > 1) {
+                    // eslint-disable-next-line default-case
+                    switch (commandType.toLowerCase()) {
+                        case 'edittooltip':
+                            return true;
+                    }
                 }
-            }
-            if (!(diagram.commandHandler.clipboardData.pasteIndex !== undefined
-                && diagram.commandHandler.clipboardData.clipObject !== undefined) && itemText === 'Paste') {
-                return true;
-            }
-            if (itemText === 'Undo' && selectedItem.selectedDiagram.historyManager.undoStack.length === 0) {
-                return true;
-            }
-            if (itemText === 'Redo' && selectedItem.selectedDiagram.historyManager.redoStack.length === 0) {
-                return true;
-            }
-            if (itemText === 'Select All') {
-                if ((selectedItem.selectedDiagram.nodes.length === 0 && selectedItem.selectedDiagram.connectors.length === 0)) {
+                if (!(diagram.commandHandler.clipboardData.pasteIndex !== undefined
+                    && diagram.commandHandler.clipboardData.clipObject !== undefined) && itemText === 'Paste') {
                     return true;
                 }
+                if (itemText === 'Undo' && selectedItem.selectedDiagram.historyManager.undoStack.length === 0) {
+                    return true;
+                }
+                if (itemText === 'Redo' && selectedItem.selectedDiagram.historyManager.redoStack.length === 0) {
+                    return true;
+                }
+                if (itemText === 'Select All') {
+                    if ((diagram.nodes.length === 0 && diagram.connectors.length === 0)) {
+                        return true;
+                    }
+                }
+                if (itemText === 'Themes') {
+                    return true;
+                }
+                if (itemText === 'Show Shortcuts' && document.getElementById('overlay').style.display === 'none') {
+                    return true;
+                }
+                if(itemText === 'Delete') {
+                    if ((diagram.selectedItems.nodes.length === 1 && diagram.selectedItems.nodes[0].inEdges && diagram.selectedItems.nodes[0].inEdges.length === 0)) {
+                        return true;
+                    }
+                }
             }
-            if (itemText === 'Themes') {
-                return true;
-            }
-            if (itemText === 'Show Shortcuts' && document.getElementById('overlay').style.display === 'none') {
-                return true;
-            }
-        }
-        return false;
+
+            return false;
+        };
+
     }
     //Method to change the values of zoom dropdown in toolbar
     zoomChange(args) {
@@ -1645,60 +1824,184 @@ class App extends React.Component {
                 zoomCurrentValue.content = (diagram.scrollSettings.currentZoom * 100).toFixed() + '%';
                 break;
             case 'Zoom to Fit':
-                zoom.zoomFactor = 1 / currentZoom - 1;
-                diagram.zoomTo(zoom);
+                diagram.fitToPage({ mode: 'Page', region: 'Content'});
                 zoomCurrentValue.content = diagram.scrollSettings.currentZoom;
                 break;
             case 'Zoom to 50%':
-                zoom.zoomFactor = (0.5 / currentZoom) - 1;
+                if (currentZoom === 0.5) {
+                    currentZoom = 0;
+                    zoom.zoomFactor = (0.5 / currentZoom) - 1;
+                }
+                else {
+                    zoom.zoomFactor = (0.5 / currentZoom) - 1;
+                }
                 diagram.zoomTo(zoom);
                 break;
             case 'Zoom to 100%':
-                zoom.zoomFactor = (1 / currentZoom) - 1;
+                if (currentZoom === 1) {
+                    currentZoom = 0;
+                    zoom.zoomFactor = (1 / currentZoom) - 1;
+                }
+                else {
+                    zoom.zoomFactor = (1 / currentZoom) - 1;
+                }
                 diagram.zoomTo(zoom);
                 break;
             case 'Zoom to 200%':
-                zoom.zoomFactor = (2 / currentZoom) - 1;
+                if (currentZoom === 2) {
+                    currentZoom = 0;
+                    zoom.zoomFactor = (2 / currentZoom) - 1;
+                }
+                else {
+                    zoom.zoomFactor = (2 / currentZoom) - 1;
+                }
                 diagram.zoomTo(zoom);
                 break;
         }
-      
-        zoomCurrentValue.content = Math.round(diagram.scrollSettings.currentZoom*100) + ' %';
-        
+
+        zoomCurrentValue.content = Math.round(diagram.scrollSettings.currentZoom * 100) + ' %';
+
     }
-      //Method to change diagramview in toolbar
+    //Method to change diagramview in toolbar
     diagramViewChange(){
         var diagram = document.getElementById("diagram").ej2_instances[0];
-        var btnWindowMenu = document.getElementById("btnWindowMenu").ej2_instances[0];
-        let toolbarObj = document.getElementsByClassName('disableItem');
-        toolbarObj[0].style.cssText = 'pointer-events: all !important; opacity:1';
-        toolbarObj[1].style.cssText = 'pointer-events: all !important; opacity:1';
-         diagram.dataSourceSettings.dataSource = new DataManager(workingData);
-         diagram.dataBind();
-         document.getElementById('propertyPanel').style.display = 'block';
-         document.getElementById('overlay').style.display = 'block';
-         document.getElementById('treeview').style.display = 'none';
-         document.getElementById('shortcutDiv').style.visibility = 'visible';
-         btnWindowMenu.items[2].iconCss = document.getElementById('shortcutDiv').style.visibility === "hidden" ? '' : 'sf-icon-check-tick';
-         diagram.fitToPage();
+        setcurrentView('DiagramView')
+        diagram.dataSourceSettings.dataSource = new DataManager(workingData);
+        var currentConnectorType = diagram.connectors[0]?.type || connectorType;
+        diagram.dataBind();
+        for (let i = 0; i < diagram.connectors.length; i++) {
+            diagram.connectors[i].type = currentConnectorType;
+        }
+        this.updateOrientation(diagram);
+        diagram.nodes.forEach(node => {
+        // Set expand/collapse icon visibility based on the global setting
+        if (node.outEdges.length > 0) {
+            node.expandIcon.shape = isExpanded ? 'Minus' : 'None';
+            node.collapseIcon.shape = isExpanded ? 'Plus' : 'None';
+        }
+
+        // Find the corresponding data object in your master data source
+        let data = workingData.find(d => d.id === node.data.id);
+        if (data) {
+            // Restore node shape, size, and custom data properties
+            node.shape.type = data.nodeShapeType;
+            if (data.nodeShapeType === 'Basic') {
+                node.shape.shape = data.nodeShape;
+                node.height = data.nodeHeight;
+            } else {
+                node.shape.data = data.nodeShapeData;
+                node.height = data.nodeHeight;
+            }
+
+            // Restore connector styles for the incoming edge
+            if ((node.inEdges || []).length > 0) {
+                var connector = this.getConnector(diagram.connectors, node.inEdges[0]);
+                if (connector) {
+                    if (data.connectorType) {
+                        connector.type = data.connectorType;
+                    }
+                    if (data.conStrokeColor) {
+                        connector.style.strokeColor = data.conStrokeColor;
+                    }
+                    if (data.conStrokeWidth) {
+                        connector.style.strokeWidth = data.conStrokeWidth;
+                    }
+                    if (data.conStrokeStyle) {
+                        connector.style.strokeDashArray = data.conStrokeStyle;
+                    }
+                }
+            }
+
+            // Restore text (annotation) styles
+            node.annotations[0].style.fontFamily = data.fontFamily || node.annotations[0].style.fontFamily;
+            node.annotations[0].style.fontSize = data.fontSize || node.annotations[0].style.fontSize;
+            node.annotations[0].style.color = data.fontColor || node.annotations[0].style.color;
+            node.annotations[0].style.opacity = data.textOpacity || node.annotations[0].style.opacity;
+            node.annotations[0].style.bold = data.bold || node.annotations[0].style.bold;
+            node.annotations[0].style.italic = data.italic || node.annotations[0].style.italic;
+            node.annotations[0].style.textDecoration = data.textDecoration || node.annotations[0].style.textDecoration;
+        }
+        });
+
+        document.getElementById('propertyPanel').style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('treeview').style.display = 'none';
+        var shortcutDiv = document.getElementById('diagram-menu').ej2_instances[0].items[3].items[2].iconCss;
+        if(shortcutDiv === 'sf-icon-check-tick'){
+            document.getElementById('shortcutDiv').style.visibility = 'visible';
+        }
+        this.diagramEvents.maintainExpandState(diagram);
+        diagram.doLayout();
+        diagram.fitToPage();
+        diagram.updateViewPort();
     }
     //Method to change treeview in toolbar
-    textViewChange(){ 
+    textViewChange(){
         var diagram = document.getElementById("diagram").ej2_instances[0];
+        diagram.nodes.forEach(node => {
+            let data = workingData.find(d => d.id === node.data.id);
+            if (data) {
+                // Save node styles
+                data.fill = node.style.fill;
+                data.strokeColor = node.style.strokeColor;
+                data.strokeWidth = node.style.strokeWidth;
+                data.strokeStyle = node.style.strokeDashArray;
+                data.opacity = node.style.opacity;
+
+                // Save shape properties
+                data.nodeShapeType = node.shape.type;
+                if (node.shape.type === 'Basic') {
+                    data.nodeShape = node.shape.shape;
+                } else if (node.shape.type === 'Path') {
+                    data.nodeShapeData = node.shape.data;
+                }
+                data.nodeHeight = node.height;
+
+                // Save annotation (text) styles
+                if (node.annotations && node.annotations.length > 0) {
+                    let style = node.annotations[0].style;
+                    data.fontFamily = style.fontFamily;
+                    data.fontSize = style.fontSize;
+                    data.fontColor = style.color;
+                    data.textOpacity = style.opacity;
+                    data.bold = style.bold;
+                    data.italic = style.italic;
+                    data.textDecoration = style.textDecoration;
+                }
+            }
+        });
+
+        diagram.connectors.forEach(connector => {
+            let targetNodeData = workingData.find(d => d.id === connector.targetID);
+            if (targetNodeData) {
+                // Save connector styles to the target node's data object
+                targetNodeData.conStrokeColor = connector.style.strokeColor;
+                targetNodeData.conStrokeWidth = connector.style.strokeWidth;
+                targetNodeData.conStrokeStyle = connector.style.strokeDashArray;
+                targetNodeData.connectorType = connector.type;
+            }
+        });
+
+
+        // this.textView.checked = true;
+        // this.diagramView.checked = false;
+        setcurrentView('TextView');
         diagram.clearSelection();
-        var toolbarObj = document.getElementsByClassName('disableItem');
-        toolbarObj[0].style.cssText = 'pointer-events: none !important; opacity:0.5';
-        toolbarObj[1].style.cssText = 'pointer-events: none !important; opacity:0.5';
         var treeObj = document.getElementById("treeView").ej2_instances[0];
-        treeObj.fields.dataSource = new DataManager(workingData);
-        treeObj.dataBind();
-        document.getElementById('propertyPanel').style.display = 'none';
+        treeObj.fields = {
+            dataSource: workingData,
+            id: 'id',
+            text: 'Label',
+            parentID: 'parentId',
+            hasChildren: 'hasChild',
+        }
+        treeObj.refresh();
         document.getElementById('overlay').style.display = 'none';
         document.getElementById('treeview').style.display = 'block';
         document.getElementById('shortcutDiv').style.visibility = 'hidden';
     }
-    treemenuclick(args){
-    var treeObj = document.getElementById("treeView").ej2_instances[0]
+    treemenuclick(args) {
+        var treeObj = document.getElementById("treeView").ej2_instances[0]
         var targetNodeId = treeObj.selectedNodes[0];
         if (args.item.text === "Add New Item") {
             addTreeNode();
@@ -1714,14 +2017,14 @@ class App extends React.Component {
         else if (args.item.text === "Rename Item") {
             treeObj.beginEdit(targetNodeId);
         }
-   }
-   //To get shortcut keys for the menu items
+    }
+    //To get shortcut keys for the menu items
     getShortCutKey(menuItem) {
         let shortCutKey = navigator.platform.indexOf('Mac') > -1 ? 'Cmd' : 'Ctrl';
         // eslint-disable-next-line
         switch (menuItem) {
             case 'New':
-              // eslint-disable-next-line
+                // eslint-disable-next-line
                 shortCutKey = 'Shift' + '+N';
                 break;
             case 'Open':
@@ -1778,63 +2081,110 @@ class App extends React.Component {
         }
         return shortCutKey;
     }
-    scrollChange(args){
-        var diagram=this.selectedItem.selectedDiagram;
+    scrollChange(args) {
+        var diagram = this.selectedItem.selectedDiagram;
         var zoomCurrentValue = document.getElementById("btnZoomIncrement");
         if (zoomCurrentValue && zoomCurrentValue.ej2_instances) {
             zoomCurrentValue = document.getElementById("btnZoomIncrement").ej2_instances[0];
             zoomCurrentValue.content = Math.round(diagram.scrollSettings.currentZoom * 100) + ' %';
         }
-     }
-     //To set the nodes default values
-     getNodeDefaults(obj){
-        if (obj.id !== 'textNode' && obj.data) {
-            //obj.constraints = draggableCheckbox.checked ?NodeConstraints.Default |NodeConstraints.AllowDrop :NodeConstraints.Default & ~NodeConstraints.Drag;
-            var empInfo = obj.data;
-            obj.style = {
-                fill: obj.data.fill, strokeColor: obj.data.strokeColor,
-                strokeWidth: 1
-            };
-            if (empInfo.branch === 'Root') {
-                obj.addInfo = { level: 0 };
-                obj.data.level = obj.addInfo.level;
-                obj.data.orientation = empInfo.branch;
+    }
+    //To set the nodes default values
+    getNodeDefaults(obj) {
+        if (!diagram.ej2_instances[0].refreshing) {
+            if (obj.data.branch === "Root") {
+                obj.constraints = NodeConstraints.Default & ~NodeConstraints.Delete;
             }
-            obj.addInfo = { level: obj.data.level, orientation: obj.data.orientation };
-            if (obj.data.orientation === "Left") {
-                obj.expandIcon = { shape: isExpanded ? 'Minus' : 'None', height: 10, width: 10, fill: 'white', borderColor: 'black', offset: { x: 1, y: 0.5 } };
-                obj.collapseIcon = { shape: isExpanded ? 'Plus' : 'None', height: 10, width: 10, fill: 'white', borderColor: 'black', offset: { x: 1, y: 0.5 } };
-            } else if (obj.data.orientation === "Root") {
-                obj.expandIcon = { shape: isExpanded ? 'Minus' : 'None', height: 10, width: 10, fill: 'white', borderColor: 'black', offset: { x: 0.5, y: 1 } };
-                obj.collapseIcon = { shape: isExpanded ? 'Plus' : 'None', height: 10, width: 10, fill: 'white', borderColor: 'black', offset: { x: 0.5, y: 1 } };
-            } else {
-                obj.expandIcon = { shape: isExpanded ? 'Minus' : 'None', height: 10, width: 10, fill: 'white', borderColor: 'black', offset: { x: 0, y: 0.5 } };
-                obj.collapseIcon = { shape: isExpanded ? 'Plus' : 'None', height: 10, width: 10, fill: 'white', borderColor: 'black', offset: { x: 0, y: 0.5 } };
-            }
-            obj.shape.cornerRadius = empInfo.branch === 'Root' ? 5 : 0;
-            obj.shape = empInfo.branch === 'Root' ? { type: 'Basic', shape: 'Ellipse' } : { type: 'Basic', shape: 'Rectangle' };
-            obj.width = empInfo.branch === 'Root' ? 150 : 100;
-            obj.height = empInfo.branch === 'Root' ? 75 : childHeight;
-            obj.annotations = [{
-                content: empInfo.Label,
+            if (obj.id !== 'textNode' && obj.data) {
+                obj.constraints = NodeConstraints.Default & ~NodeConstraints.Drag;
+                var empInfo = obj.data;
+                obj.style = {
+                    fill: empInfo.fill,
+                    strokeColor: empInfo.strokeColor,
+                    strokeWidth: empInfo.strokeWidth !== undefined ? empInfo.strokeWidth : 1,
+                    opacity: empInfo.shapeOpacity !== undefined ? empInfo.shapeOpacity : 1,
+                    strokeDashArray: empInfo.strokeStyle || ""
+                };
+                if (empInfo.branch === 'Root') {
+                    obj.addInfo = { level: 0 };
+                    obj.data.level = obj.addInfo.level;
+                    obj.data.orientation = empInfo.branch;
+                }
+                obj.addInfo = { level: obj.data.level, orientation: obj.data.orientation };
+                if (obj.data.orientation === "Left") {
+                    obj.expandIcon = { shape: isExpanded ? 'Minus' : 'None', height: 10, width: 10, fill: 'white', borderColor: 'black', offset: { x: 1, y: 0.5 } };
+                    obj.collapseIcon = { shape: isExpanded ? 'Plus' : 'None', height: 10, width: 10, fill: 'white', borderColor: 'black', offset: { x: 1, y: 0.5 } };
+                } else if (obj.data.orientation === "Root") {
+                    obj.expandIcon = { shape: isExpanded ? 'Minus' : 'None', height: 10, width: 10, fill: 'white', borderColor: 'black', offset: { x: 0.5, y: 1 } };
+                    obj.collapseIcon = { shape: isExpanded ? 'Plus' : 'None', height: 10, width: 10, fill: 'white', borderColor: 'black', offset: { x: 0.5, y: 1 } };
+                } else {
+                    obj.expandIcon = { shape: isExpanded ? 'Minus' : 'None', height: 10, width: 10, fill: 'white', borderColor: 'black', offset: { x: 0, y: 0.5 } };
+                    obj.collapseIcon = { shape: isExpanded ? 'Plus' : 'None', height: 10, width: 10, fill: 'white', borderColor: 'black', offset: { x: 0, y: 0.5 } };
+                }
+                let shapeType = empInfo.nodeShapeType || 'Basic';
+                let shape = empInfo.nodeShape || (empInfo.branch === 'Root' ? 'Ellipse' : 'Rectangle');
+                let shapeData = empInfo.nodeShapeData || '';
 
-            }];
-            var port = this.getPort();
-            if (!obj.ports.length) {
-                    obj.ports=port;
+                if (shapeType === 'Basic') {
+                    obj.shape = { type: 'Basic', shape: shape };
+                } else if (shapeType === 'Path') {
+                    obj.shape = { type: 'Path', data: shapeData };
+                } else {
+                    obj.shape = { type: shapeType, shape: shape };
+                }
+                if (typeof empInfo.nodeWidth !== "undefined") {
+                    obj.width = empInfo.nodeWidth;
+                } else {
+                    obj.width = empInfo.branch === 'Root' ? 150 : 100;
+                }
+                if (typeof empInfo.nodeHeight !== "undefined") {
+                    obj.height = empInfo.nodeHeight;
+                } else {
+                    obj.height = empInfo.branch === 'Root' ? 75 : childHeight;
+                }
+                obj.annotations = [{
+                    content: empInfo.Label,
+                }];
+                if (obj.data && obj.data.annotation) {
+                    obj.annotations[0] = obj.data.annotation;
+                }
+                if (obj.data && obj.annotations && obj.annotations.length > 0) {
+                    const data = obj.data;
+                    const annotation = obj.annotations[0];
+                    annotation.style = annotation.style || {};
+                    if (data.fontFamily) {
+                        annotation.style.fontFamily = data.fontFamily;
+                    }
+                    if (data.fontSize) {
+                        annotation.style.fontSize = data.fontSize;
+                    }
+                    if (data.fontColor) {
+                        annotation.style.color = data.fontColor;
+                    }
+                    if (data.textOpacity !== undefined) {
+                        annotation.style.opacity = data.textOpacity;
+                    }
+                    if (data.bold !== undefined) {
+                        annotation.style.bold = data.bold;
+                    }
+                    if (data.italic !== undefined) {
+                        annotation.style.italic = data.italic;
+                    }
+                    if (data.textDecoration) {
+                        annotation.style.textDecoration = data.textDecoration;
+                    }
+                }
+                var port = this.getPort();
+                if (!obj.ports.length) {
+                    obj.ports = port;
+                }
+                hideUserHandle('Top');
             }
-           hideUserHandle('Top');
+            return obj;
         }
-        setTimeout(function () {
-            if (mindMapPatternTarget) {
-                this.diagramEvents.mindmapPatternChange(mindMapPatternTarget);
-            }
-        }, 0);
-
-        return obj;
-     }
-      //Defining the port values
-     getPort() {
+    }
+    //Defining the port values
+    getPort() {
         var port =
             [{
                 id: 'leftPort', offset: { x: 0, y: 0.5 }, visibility: PortVisibility.Hidden,
@@ -1844,79 +2194,50 @@ class App extends React.Component {
                 id: 'rightPort', offset: { x: 1, y: 0.5 }, visibility: PortVisibility.Hidden,
                 style: { fill: 'black' }
             },
-            {   id: 'topPort', offset: { x: 0.5, y: 0 }, visibility: PortVisibility.Hidden,
+            {
+                id: 'topPort', offset: { x: 0.5, y: 0 }, visibility: PortVisibility.Hidden,
                 style: { fill: 'black' }
             },
-            { 
-                id: 'bottomPort', offset: { x: 0.5, y: 1 },visibility: PortVisibility.Hidden,
-                style: { fill: 'black' } 
+            {
+                id: 'bottomPort', offset: { x: 0.5, y: 1 }, visibility: PortVisibility.Hidden,
+                style: { fill: 'black' }
             }
             ];
         return port;
     }
-    //To set the connector default values
+    //To set the connector default values 
     getConnectorDefaults(connector) {
         var diagram = document.getElementById("diagram").ej2_instances[0];
-        connector.type = connectorType;
-        connector.targetDecorator = { shape: 'None' };
-        var sourceNode = diagram.getObject(connector.sourceID);
-        var targetNode = diagram.getObject(connector.targetID);
-        if (targetNode.data.branch === 'Right' || targetNode.data.branch === 'subRight') {
-            connector.sourcePortID = sourceNode.ports[0].id;
-            connector.targetPortID = targetNode.ports[1].id;
-            connector.style = { strokeWidth: 1, strokeColor: '#8E44AD' };
+        if (!diagram.refreshing) {
+            connector.type = getconTypeInPattern();
+            connector.targetDecorator = { shape: 'None' };
+            var sourceNode = diagram.getObject(connector.sourceID);
+            var targetNode = diagram.getObject(connector.targetID);
+            if (targetNode.data.branch === 'Right' || targetNode.data.branch === 'subRight') {
+                connector.sourcePortID = sourceNode.ports[0].id;
+                connector.targetPortID = targetNode.ports[1].id;
+                connector.style = { strokeWidth: targetNode.style.strokeWidth, strokeColor: targetNode.style.strokeColor, strokeDashArray: targetNode.style.strokeDashArray };
+            }
+            else if (targetNode.data.branch === 'Left' || targetNode.data.branch === 'subLeft') {
+                connector.sourcePortID = sourceNode.ports[1].id;
+                connector.targetPortID = targetNode.ports[0].id;
+                connector.style = { strokeWidth: targetNode.style.strokeWidth, strokeColor: targetNode.style.strokeColor, strokeDashArray: targetNode.style.strokeDashArray };
+            }
+            this.updateOrientation(diagram);
+            connector.constraints &= ~ConnectorConstraints.Select;
+            return connector;
         }
-        else if (targetNode.data.branch === 'Left' || targetNode.data.branch === 'subLeft') {
-            connector.sourcePortID = sourceNode.ports[1].id;
-            connector.targetPortID = targetNode.ports[0].id;
-            connector.style = { strokeWidth: 1, strokeColor: '#3498DB' };
-        }
-        this.updateOrientation(diagram);
-        connector.constraints &= ~ConnectorConstraints.Select;
-        return connector;
     };
-   //selection change event
-    selectionChange(arg){
-          if (arg.state === 'Changing') {
-            var diagram = document.getElementById("diagram").ej2_instances[0];
-            if (arg.newValue[0] instanceof Node && arg.newValue[0].addInfo) {
-                for (var _i = 0, _a = diagram.selectedItems.userHandles; _i < _a.length; _i++) {
-                    var handle_1 = _a[_i];
-                    handle_1.visible = true;
-                }
-                if (arg.newValue[0].addInfo.orientation === 'Left' ||
-                    arg.newValue[0].addInfo.orientation === 'subLeft') {
-                   hideUserHandle('leftHandle');
-                    this.changeUserHandlePosition('leftHandle');
-                }
-                else if (arg.newValue[0].addInfo.orientation === 'Right' ||
-                    arg.newValue[0].addInfo.orientation === 'subRight') {
-                       hideUserHandle('rightHandle');
-                        this.changeUserHandlePosition('rightHandle');
-                }
-                else if (arg.newValue[0].data.branch === 'Root') {
-                   hideUserHandle('devare');
-                }
-                UtilityMethods.prototype.onClickDisable(false, arg.newValue[0]);
-            }
-            else {
-               hideUserHandle('leftHandle');
-               hideUserHandle('rightHandle');
-               hideUserHandle('devare');
-                UtilityMethods.prototype.onClickDisable(true);
-            }
-        }
-    }
 
     arrangeMenuBeforeOpen(args) {
         for (var i = 0; i < args.element.children.length; i++) {
             args.element.children[i].style.display = 'block';
         }
-        
+
         if (args.event && closest(args.event.target, '.e-dropdown-btn') !== null) {
             args.cancel = true;
         }
-        
+
     }
     arrangeMenuBeforeClose(args) {
         if (args.event && closest(args.event.target, '.e-dropdown-btn') !== null) {
@@ -1926,13 +2247,13 @@ class App extends React.Component {
             args.cancel = true;
         }
     }
-   
-   beforeopen(args) {
+
+    beforeopen(args) {
         var treeObj = document.getElementById("treeView").ej2_instances[0]
         var menuObj = document.getElementById("contextmenu").ej2_instances[0]
         var targetNodeId = treeObj.selectedNodes[0];
         var targetNode = document.querySelector('[data-uid="' + targetNodeId + '"]');
-        if(targetNode){
+        if (targetNode) {
             if (targetNode.classList.contains('remove')) {
                 menuObj.enableItems(['Remove Item'], false);
             }
@@ -1946,12 +2267,12 @@ class App extends React.Component {
                 menuObj.enableItems(['Rename Item'], true);
             }
         }
-        else{
-            args.cancel =true;
+        else {
+            args.cancel = true;
         }
-}
-//event triggered on menu items click
-   menuClick(args) {
+    }
+    //event triggered on menu items click
+    menuClick(args) {
         const buttonElement = document.getElementsByClassName('e-btn-hover')[0];
         if (buttonElement) {
             buttonElement.classList.remove('e-btn-hover');
@@ -1965,12 +2286,22 @@ class App extends React.Component {
         switch (commandType) {
             case 'New':
                 diagram.clear();
+                workingData = [];
+                workingData.push({ id: '1', Label: 'Root', branch: 'Root', hasChild: true, level: 0, fill: "#D0ECFF", strokeColor: "#80BFEA", orientation: 'Root', nodeShapeType: 'Basic', nodeShape: 'Ellipse', nodeShapeData: '', nodeHeight: 75 });
+                diagram.dataSourceSettings.dataSource = new DataManager([workingData[0]]);
+                diagram.dataBind();
+                diagram.nodes[0].expandIcon.shape = document.getElementById('expandCheckbox').checked ? 'Minus' : 'None';
+                diagram.nodes[0].collapseIcon.shape = document.getElementById('expandCheckbox').checked ? 'Plus' : 'None';
+                let pattern = document.getElementsByClassName('mindmap-pattern-style mindmap-pattern1');
+                setMindMapPatternTarget(pattern[0]);
+                diagram.fitToPage();
                 break;
             case 'Open':
                 document.getElementsByClassName('e-file-select-wrap')[0].querySelector('button').click();
                 break;
             case 'Save':
-                this.download(diagram.saveDiagram());
+                diagram.mindMapPatternTarget = getMindMapPatternTarget();
+                this.download(diagram.saveDiagram(), (document.getElementById('diagramName')).innerHTML);
                 break;
             case 'Print':
                 this.selectedItem.printSettings.pageHeight = this.selectedItem.pageSettings.pageHeight;
@@ -1978,9 +2309,13 @@ class App extends React.Component {
                 this.selectedItem.printSettings.paperSize = this.selectedItem.pageSettings.paperSize;
                 this.selectedItem.printSettings.isPortrait = this.selectedItem.pageSettings.isPortrait;
                 this.selectedItem.printSettings.isLandscape = !this.selectedItem.pageSettings.isPortrait;
-                this.printDialog.show();
+                this.selectedItem.printSettings.region = 'Content';
+                this.btnPrintClick()
                 break;
             case 'Export':
+                let fileName = document.getElementById('diagramName').innerHTML ? document.getElementById('diagramName').innerHTML : 'Untitled Diagram';
+                this.selectedItem.exportSettings.fileName = fileName;
+                document.getElementById('exportfileName').value = fileName;
                 this.exportDialog.show();
                 break;
             case 'Undo':
@@ -1999,10 +2334,9 @@ class App extends React.Component {
                 diagram.paste();
                 break;
             case 'Delete':
-                diagram.remove();
+                UtilityMethods.prototype.removeChild();
                 break;
             case 'Select All':
-                diagram.clearSelection();
                 diagram.selectAll();
                 break;
             case "Zoom In":
@@ -2017,7 +2351,7 @@ class App extends React.Component {
                 UtilityMethods.prototype.hideElements('hide-toolbar', diagram);
                 args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
                 break;
-          
+
             case 'Show Properties':
                 UtilityMethods.prototype.hideElements('hide-properties', diagram);
                 args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
@@ -2027,33 +2361,31 @@ class App extends React.Component {
                 node1.style.visibility = node1.style.visibility === "hidden" ? node1.style.visibility = "visible" : node1.style.visibility = "hidden";
                 args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
                 break;
-                case 'Show Lines':
-                    diagram.snapSettings.constraints = diagram.snapSettings.constraints ^ SnapConstraints.ShowLines;
-                    args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
-                    break;
-                case 'Show Rulers':
-                    args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
-                    diagram.rulerSettings.showRulers = !diagram.rulerSettings.showRulers;
-                    break;
-                case 'Fit To Screen':
-                    zoom.zoomFactor = 1 / currentZoom - 1;
-                    diagram.zoomTo(zoom);
-                    zoomCurrentValue.content = diagram.scrollSettings.currentZoom;
-                    break;
+            case 'Show Lines':
+                diagram.snapSettings.constraints = diagram.snapSettings.constraints ^ SnapConstraints.ShowLines;
+                args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
+                break;
+            case 'Show Rulers':
+                args.item.iconCss = args.item.iconCss ? '' : 'sf-icon-check-tick';
+                diagram.rulerSettings.showRulers = !diagram.rulerSettings.showRulers;
+                break;
+            case 'Fit To Screen':
+                diagram.fitToPage({canZoomOut:true});
+                zoomCurrentValue.content = diagram.scrollSettings.currentZoom;
+                break;
         }
         diagram.dataBind();
     }
     //To hide the toolbar container
-    hideToolbar(){
+    hideToolbar() {
         var diagram = document.getElementById("diagram").ej2_instances[0];
-        var btnWindowMenu = document.getElementById("btnWindowMenu").ej2_instances[0];
-        // var expandcollapseicon = document.getElementById('btnHideToolbar');
         UtilityMethods.prototype.hideElements('hide-properties', diagram);
-        btnWindowMenu.items[1].iconCss = btnWindowMenu.items[1].iconCss ? '' : 'sf-icon-check-tick';
+        if (document.getElementById('diagram-menu') && document.getElementById('diagram-menu').ej2_instances[0]) {
+            document.getElementById('diagram-menu').ej2_instances[0].items[3].items[1].iconCss = document.getElementById('diagram-menu').ej2_instances[0].items[3].items[1].iconCss ? '' : 'sf-icon-check-tick';
+        }
     }
     //To change the paper size
-    paperListChange(args,diagram)
-    {
+    paperListChange(args, diagram) {
         var value = args.item.value;
         var paperSize = this.getPaperSize(value);
         var pageWidth = paperSize.pageWidth;
@@ -2077,41 +2409,36 @@ class App extends React.Component {
             diagram.pageSettings.width = pageWidth;
             diagram.pageSettings.height = pageHeight;
         }
-        else{
+        else {
             diagram.pageSettings.width = 1460;
             diagram.pageSettings.height = 600;
         }
         let designContextMenu = document.getElementById('designContextMenu').ej2_instances[0];
-        this.updatePaperSelection(designContextMenu.items[1],args.item.value);
+        this.updatePaperSelection(designContextMenu.items[1], args.item.value);
         diagram.dataBind();
     };
-    updatePaperSelection (items,value)
-    {
-        for(var i=0;i<items.items.length;i++)
-        {
-         if(value === items.items[i].value){
-             items.items[i].iconCss = 'sf-icon-check-tick';
-         }
-         else{
-             items.items[i].iconCss = '';
-         }
+    updatePaperSelection(items, value) {
+        for (var i = 0; i < items.items.length; i++) {
+            if (value === items.items[i].value) {
+                items.items[i].iconCss = 'sf-icon-check-tick';
+            }
+            else {
+                items.items[i].iconCss = '';
+            }
         }
     };
-  //To check and uncheck the menu items
-    updateSelection(item)
-    {
-        for(var i=0;i<item.parentObj.items.length;i++)
-        {
-            if(item.text === item.parentObj.items[i].text){
+    //To check and uncheck the menu items
+    updateSelection(item) {
+        for (var i = 0; i < item.parentObj.items.length; i++) {
+            if (item.text === item.parentObj.items[i].text) {
                 item.parentObj.items[i].iconCss = 'sf-icon-check-tick';
             }
-            else{
+            else {
                 item.parentObj.items[i].iconCss = '';
             }
         }
     };
-    getPaperSize (args)
-    {
+    getPaperSize(args) {
         var paperSize = new PaperSize();
         // eslint-disable-next-line default-case
         switch (args) {
@@ -2131,11 +2458,11 @@ class App extends React.Component {
                 paperSize.pageWidth = 3179;
                 paperSize.pageHeight = 4494;
                 break;
-             case 'A1':
+            case 'A1':
                 paperSize.pageWidth = 2245;
                 paperSize.pageHeight = 3179;
                 break;
-             case 'A2':
+            case 'A2':
                 paperSize.pageWidth = 1587;
                 paperSize.pageHeight = 2245;
                 break;
@@ -2159,17 +2486,16 @@ class App extends React.Component {
         return paperSize
     };
     //To save the diagram
-    download(data)
-    {
+    download(data, filename) {
         if (window.navigator.msSaveBlob) {
             var blob = new Blob([data], { type: 'data:text/json;charset=utf-8,' });
-            window.navigator.msSaveOrOpenBlob(blob, 'Diagram.json');
+            window.navigator.msSaveOrOpenBlob(blob, filename + '.json');
         }
         else {
             var dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(data);
             var a = document.createElement('a');
             a.href = dataStr;
-            a.download = document.getElementById('diagramName').innerHTML+'.json';
+            a.download = filename ? filename + '.json' : 'Untitled Diagram.json';
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -2177,45 +2503,44 @@ class App extends React.Component {
     };
     menumouseover(args) {
         var target = args.target;
-        var diagram=this.selectedItem.selectedDiagram
+        var diagram = this.selectedItem.selectedDiagram
         if (target && (target.className === 'e-control e-dropdown-btn e-lib e-btn db-dropdown-menu' ||
-        target.className === 'e-control e-dropdown-btn e-lib e-btn db-dropdown-menu e-ddb-active')) {
-        if (this.buttonInstance && this.buttonInstance.id !== target.id) {
-            if (this.buttonInstance.getPopUpElement().classList.contains('e-popup-open')) {
-                this.buttonInstance.toggle();
-                var buttonElement = document.getElementById(this.buttonInstance.element.id);
-                buttonElement.classList.remove('e-btn-hover');
+            target.className === 'e-control e-dropdown-btn e-lib e-btn db-dropdown-menu e-ddb-active')) {
+            if (this.buttonInstance && this.buttonInstance.id !== target.id) {
+                if (this.buttonInstance.getPopUpElement().classList.contains('e-popup-open')) {
+                    this.buttonInstance.toggle();
+                    var buttonElement = document.getElementById(this.buttonInstance.element.id);
+                    buttonElement.classList.remove('e-btn-hover');
+                }
+            }
+            var button1 = target.ej2_instances[0];
+            this.buttonInstance = button1;
+            if (button1.getPopUpElement().classList.contains('e-popup-close')) {
+                button1.toggle();
+                if (button1.element.id === 'btnArrangeMenu') {
+                    UtilityMethods.prototype.enableArrangeMenuItems(diagram);
+                }
+                var buttonElement1 = document.getElementById(this.buttonInstance.element.id);
+                buttonElement1.classList.add('e-btn-hover');
+            }
+        } else {
+            if (closest(target, '.e-dropdown-popup') === null && closest(target, '.e-dropdown-btn') === null) {
+                if (this.buttonInstance && this.buttonInstance.getPopUpElement().classList.contains('e-popup-open')) {
+                    this.buttonInstance.toggle();
+                    var buttonElement2 = document.getElementById(this.buttonInstance.element.id);
+                    buttonElement2.classList.remove('e-btn-hover');
+                }
             }
         }
-        var button1 = target.ej2_instances[0];
-        this.buttonInstance = button1;
-        if (button1.getPopUpElement().classList.contains('e-popup-close')) {
-            button1.toggle();
-            if (button1.element.id === 'btnArrangeMenu') {
-             UtilityMethods.prototype.enableArrangeMenuItems(diagram);
-            }
-            var buttonElement1 = document.getElementById(this.buttonInstance.element.id);
-            buttonElement1.classList.add('e-btn-hover');
-        }
-    } else {
-        if (closest(target, '.e-dropdown-popup') === null && closest(target, '.e-dropdown-btn') === null) {
-            if (this.buttonInstance && this.buttonInstance.getPopUpElement().classList.contains('e-popup-open')) {
-                this.buttonInstance.toggle();
-                var buttonElement2 = document.getElementById(this.buttonInstance.element.id);
-                buttonElement2.classList.remove('e-btn-hover');
-            }
-        }
-    }
     }
     onHideNodeClick(args) {
         var node1 = document.getElementById('shortcutDiv');
-        var diagram = document.getElementById('diagram').ej2_instances[0];
-        var btnWindowMenu = document.getElementById("btnWindowMenu").ej2_instances[0];
         node1.style.visibility = node1.style.visibility === "hidden" ? node1.style.visibility = "visible" : node1.style.visibility = "hidden";
-        btnWindowMenu.items[2].iconCss = node1.style.visibility === "hidden" ? '' : 'sf-icon-check-tick';
-        diagram.dataBind();
+        if (document.getElementById('diagram-menu') && document.getElementById('diagram-menu').ej2_instances[0]) {
+            document.getElementById('diagram-menu').ej2_instances[0].items[3].items[2].iconCss = document.getElementById('diagram-menu').ej2_instances[0].items[3].items[2].iconCss ? '' : 'sf-icon-check-tick';
+        }
     }
-   enableEditMenuItems(diagram) {
+    enableEditMenuItems(diagram) {
         var contextInstance = document.getElementById('editContextMenu');
         var contextMenu = contextInstance.ej2_instances[0];
         var selectedItems = diagram.selectedItems.nodes;
@@ -2238,8 +2563,42 @@ class App extends React.Component {
             contextMenu.enableItems(['Paste']);
         }
     }
-    
+
 
 }
-
+const Footer = () => (
+  <div className="footer">
+    <div className="footer-container">
+      <div className="diagram-icon">
+        <img
+          className="footer-logo"
+          src="./assets/dbstyle/common_images/Diagram_Component.svg"
+        />
+      </div>
+      <div className="footer-content">
+        <div className="title">
+          <span>
+            Want interactive diagramming in your app?
+          </span>
+          <span><strong className='main-title'> Try our Diagram Component</strong> — build, connect, and customize!</span>
+        </div>
+        <div className="buttons">
+          <button
+            type="button"
+            className="e-trial-btn e-btn e-primary e-icons"
+            onClick={() => window.open('https://www.syncfusion.com/downloads/react?tag=es-freetools-mind-map-maker-sample-ads-trial', '_blank')}
+          >
+          </button>
+          <button
+            type="button"
+            className="e-demo-btn e-btn"
+            onClick={() => window.open('https://www.syncfusion.com/request-demo?tag=es-freetools-mind-map-maker-sample-ads-demo', '_blank')}
+          >
+            Request Demo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 export default App;

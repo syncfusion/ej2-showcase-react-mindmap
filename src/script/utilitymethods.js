@@ -2,26 +2,26 @@
  *  Home page handler
  */
  import { NodeConstraints, Node } from '@syncfusion/ej2-diagrams';
-import { getConnector,getNode } from '../App';
+import { getConnector,getNode, workingData  } from '../App';
  export class PaperSize {
  }
  export class UtilityMethods {
      constructor() {
          this.fillColorCode = ['#C4F2E8', '#F7E0B3', '#E5FEE4', '#E9D4F1', '#D4EFED', '#DEE2FF'];
          this.borderColorCode = ['#8BC1B7', '#E2C180', '#ACCBAA', '#D1AFDF', '#90C8C2', '#BBBFD6'];
-         
+
      }
      //To save the diagram
-     download = function (data) {
+     download (data, filename) {
         if (window.navigator.msSaveBlob) {
             var blob = new Blob([data], { type: 'data:text/json;charset=utf-8,' });
-            window.navigator.msSaveOrOpenBlob(blob, 'Diagram.json');
+            window.navigator.msSaveOrOpenBlob(blob, filename + '.json');
         }
         else {
             var dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(data);
             var a = document.createElement('a');
             a.href = dataStr;
-            a.download = 'Diagram.json';
+            a.download =  filename + '.json';
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -50,16 +50,18 @@ import { getConnector,getNode } from '../App';
         var sameLevelNodes = [];
         if (diagram.selectedItems.nodes.length > 0) {
             var node = diagram.selectedItems.nodes[0];
-            var orientation_1 = node.addInfo.orientation.toString();
-            var connector = getConnector(diagram.connectors, node.inEdges[0]);
-            var parentNode = getNode(diagram.nodes, connector.sourceID);
-            for (var i = 0; i < parentNode.outEdges.length; i++) {
-                connector = getConnector(diagram.connectors, parentNode.outEdges[i]);
-                var childNode = getNode(diagram.nodes, connector.targetID);
-                if (childNode) {
-                    var childOrientation = childNode.addInfo.orientation.toString();
-                    if (orientation_1 === childOrientation) {
-                        sameLevelNodes.push(childNode);
+            if (node.data.branch !== 'Root') {
+                var orientation_1 = node.addInfo.orientation.toString();
+                var connector = getConnector(diagram.connectors, node.inEdges[0]);
+                var parentNode = getNode(diagram.nodes, connector.sourceID);
+                for (var i = 0; i < parentNode.outEdges.length; i++) {
+                    connector = getConnector(diagram.connectors, parentNode.outEdges[i]);
+                    var childNode = getNode(diagram.nodes, connector.targetID);
+                    if (childNode) {
+                        var childOrientation = childNode.addInfo.orientation.toString();
+                        if (orientation_1 === childOrientation) {
+                            sameLevelNodes.push(childNode);
+                        }
                     }
                 }
             }
@@ -70,18 +72,25 @@ import { getConnector,getNode } from '../App';
      hideElements(elementType, diagram, diagramType) {
          const diagramContainer = document.getElementsByClassName('diagrambuilder-container')[0];
          if (diagramContainer.classList.contains(elementType)) {
-             if (!(diagramType === 'mindmap-diagram' || diagramType === 'orgchart-diagram')) {
-                 diagramContainer.classList.remove(elementType);
-             }
-         }
-         else {
-             diagramContainer.classList.add(elementType);
-         }
+            if (!(diagramType === 'mindmap-diagram' || diagramType === 'orgchart-diagram')) {
+            diagramContainer.classList.remove(elementType);
+            }
+            (document.getElementById('btnWindowMenu')).style.backgroundColor = '';
+            (document.getElementById('btnWindowMenu')).style.color = '#fff';
+            (document.getElementById('btnWindowMenu')).ej2_instances[0].isPrimary = true;
+        }
+        else {
+            diagramContainer.classList.add(elementType);
+            (document.getElementById('btnWindowMenu')).style.backgroundColor = '#e3e3e3';
+            (document.getElementById('btnWindowMenu')).style.color = 'black';
+            (document.getElementById('btnWindowMenu')).ej2_instances[0].isPrimary = false;
+        }
          if (diagram) {
              diagram.updateViewPort();
          }
      }
- 
+
+    //To enable arrange menu items.
      enableArrangeMenuItems(selectedItem) {
          const contextMenu = this.arrangeContextMenu;
          let selectedItems = selectedItem.selectedDiagram.selectedItems.nodes;
@@ -110,7 +119,7 @@ import { getConnector,getNode } from '../App';
              }
          }
      }
-    
+
     //To remove the child node
      removeChild(selectedItem) {
         var diagram = document.getElementById("diagram").ej2_instances[0];
@@ -131,6 +140,11 @@ import { getConnector,getNode } from '../App';
                 this.removeSubChild(childNode);
             }
             else {
+                for (var data = workingData.length - 1; data >= 0; data--) {
+                    if (workingData[data].id === childNode.data.id) {
+                        workingData.splice(data, 1);
+                    }
+                }
                 diagram.remove(childNode);
             }
         }
@@ -153,10 +167,18 @@ import { getConnector,getNode } from '../App';
                 diagram.select([childNode]);
             }
         }
-        diagram.remove(node);
+        for (var x = workingData.length - 1; x >= 0; x--) {
+            if (workingData[x].id === node.data.id && node.data.branch !='Root') {
+                workingData.splice(x, 1);
+            }
+        }
+        if(node.data.branch !=='Root')
+        {
+            diagram.remove(node);
+        }
      }
  //To get the fileName
-     fileName(){
+    fileName(){
         return document.getElementById('diagramName').innerHTML;
     }
     //To get the minimum distance node
@@ -227,5 +249,4 @@ import { getConnector,getNode } from '../App';
         }
         return lastChildNode;
     };
-     
- }
+}
